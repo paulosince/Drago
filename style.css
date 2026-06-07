@@ -99,17 +99,26 @@ html, body {
 }
 
 /* ── HOME ── */
-#screen-home { padding-bottom: 48px; }
+#screen-home { padding-bottom: 48px; padding-top: 0; }
 .home-topbar {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 52px 20px 12px;
+  padding: 52px 0 8px;
 }
 .home-title { font-size: 22px; font-weight: 900; }
 .btn-settings { background: none; border: none; font-size: 22px; cursor: pointer; }
 
-/* Dragon Card */
+/* Dragon Card — sticky */
+.dragon-card-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 12px 16px 8px;
+  background: rgba(247, 249, 247, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
 .dragon-card {
-  margin: 0 16px;
   background: linear-gradient(145deg, #4ecb87, #3dba78);
   border-radius: var(--radius);
   padding: 20px;
@@ -161,9 +170,34 @@ html, body {
   padding: 16px 0 32px;
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 4px;
 }
+
+/* Cada linha da trilha: brasão + imagem lateral */
+.trail-row {
+  position: relative;
+  width: 100%;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+}
+
+/* Imagem temática lateral */
+.trail-scenic {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.trail-scenic-left  { left: 16px; }
+.trail-scenic-right { right: 16px; }
+
+.trail-scenic-img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+.trail-image-future { filter: grayscale(100%) opacity(0.35); }
 
 .trail-step {
   display: flex;
@@ -173,9 +207,9 @@ html, body {
   width: 100%;
   padding: 4px 0;
 }
-.trail-left  { padding-left: 32px;  align-items: flex-start; }
+.trail-left  { padding-left: 24px;  align-items: flex-start; }
 .trail-center { align-items: center; }
-.trail-right { padding-right: 32px; align-items: flex-end; }
+.trail-right { padding-right: 24px; align-items: flex-end; }
 
 .trail-today-tag {
   background: #ff6b35; color: white;
@@ -186,7 +220,7 @@ html, body {
 
 .trail-coin-wrap {
   position: relative;
-  width: 64px; height: 64px;
+  width: 104px; height: 104px;
   cursor: pointer;
   transition: transform 0.15s;
 }
@@ -197,7 +231,7 @@ html, body {
 }
 
 .trail-coin {
-  width: 64px; height: 64px;
+  width: 104px; height: 104px;
   border-radius: 50%; object-fit: cover;
 }
 
@@ -214,17 +248,7 @@ html, body {
   font-size: 11px; color: var(--text-soft); font-weight: 600;
 }
 
-/* Trail images */
-.trail-image-wrap {
-  width: 100%; display: flex; justify-content: center;
-  padding: 8px 0;
-}
-.trail-image {
-  width: 100px; height: 100px; object-fit: contain;
-  transition: filter 0.3s;
-}
-.trail-image-future { filter: grayscale(100%) opacity(0.4); }
-.trail-image-past   { filter: none; }
+
 
 /* ── DAY DETAIL ── */
 #screen-day { padding-bottom: 40px; }

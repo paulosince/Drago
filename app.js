@@ -252,29 +252,49 @@ function buildJourneyTrail() {
     allDays.push(year + '-' + mm + '-' + dd);
   }
 
-  var imgIndex = 0;
+  // S-curve positions: cada grupo de 6 forma uma curva
+  // left, center-left, center-right, right, center-right, center-left
   var positions = ['left', 'center', 'right', 'right', 'center', 'left'];
 
+  // Imagens temáticas aparecem a cada 5 dias, no lado OPOSTO ao brasão
+  var imgIndex = 0;
+  var imgEvery = 5; // a cada 5 brasões
+
   for (var i = 0; i < allDays.length; i++) {
-    if (i > 0 && i % 7 === 0) {
-      var imgData = TRAIL_IMAGES[imgIndex % TRAIL_IMAGES.length];
-      imgIndex++;
-      trail.appendChild(buildTrailImage(imgData, allDays[i - 1] < t));
-    }
     var pos = positions[i % 6];
-    trail.appendChild(buildTrailCoin(allDays[i], t, pos));
+    var isPast = allDays[i] <= t;
+
+    // A cada `imgEvery` dias, mostra imagem no lado oposto
+    var showImg = (i > 0 && i % imgEvery === 0);
+    var imgData = showImg ? TRAIL_IMAGES[imgIndex % TRAIL_IMAGES.length] : null;
+    if (showImg) imgIndex++;
+
+    trail.appendChild(buildTrailRow(allDays[i], t, pos, imgData, isPast));
   }
 }
 
-function buildTrailImage(imgData, isPast) {
-  var wrap = document.createElement('div');
-  wrap.className = 'trail-image-wrap';
-  var el = document.createElement('img');
-  el.src = imgData.src;
-  el.alt = imgData.label;
-  el.className = 'trail-image ' + (isPast ? 'trail-image-past' : 'trail-image-future');
-  wrap.appendChild(el);
-  return wrap;
+function buildTrailRow(dayKey, todayKey, pos, imgData, isPast) {
+  // Wrapper que contém brasão + imagem lateral na mesma linha
+  var row = document.createElement('div');
+  row.className = 'trail-row';
+
+  // Lado oposto ao brasão para a imagem
+  var oppositePos = pos === 'left' ? 'right' : pos === 'right' ? 'left' : null;
+
+  // Imagem lateral (se houver e tiver lado oposto definido)
+  if (imgData && oppositePos) {
+    var imgWrap = document.createElement('div');
+    imgWrap.className = 'trail-scenic trail-scenic-' + oppositePos;
+    var img = document.createElement('img');
+    img.src = imgData.src;
+    img.alt = imgData.label;
+    img.className = 'trail-scenic-img' + (isPast ? '' : ' trail-image-future');
+    imgWrap.appendChild(img);
+    row.appendChild(imgWrap);
+  }
+
+  row.appendChild(buildTrailCoin(dayKey, todayKey, pos));
+  return row;
 }
 
 function buildTrailCoin(dayKey, todayKey, pos) {
