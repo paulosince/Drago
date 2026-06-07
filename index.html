@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#3dba78" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>Drago</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- SPLASH -->
+  <div id="screen-splash" class="screen active">
+    <div class="splash-bg"></div>
+    <div class="splash-content">
+      <img src="dragon_transparent.png" alt="Drago" class="splash-dragon" />
+      <h1 class="splash-title">Drago</h1>
+      <p class="splash-subtitle">Evolua com disciplina</p>
+    </div>
+  </div>
+
+  <!-- SETUP -->
+  <div id="screen-setup" class="screen">
+    <div class="setup-header">
+      <button class="btn-back" id="setup-back" onclick="goBack()">←</button>
+      <h2>Seus treinamentos</h2>
+    </div>
+    <p class="setup-desc">Defina o que Drago precisa de você todos os dias.</p>
+
+    <div id="training-list" class="training-list"></div>
+
+    <button class="btn-add" onclick="addTraining()">+ Adicionar treinamento</button>
+
+    <div class="setup-footer">
+      <button class="btn-primary" onclick="saveSetup()">Salvar e começar</button>
+    </div>
+  </div>
+
+  <!-- HOME (Jornada) -->
+  <div id="screen-home" class="screen">
+    <div class="home-topbar">
+      <span class="home-title">Drago</span>
+      <button class="btn-settings" onclick="goToSetup()">⚙️</button>
+    </div>
+
+    <div class="dragon-card" id="dragon-card">
+      <div class="card-info">
+        <span class="card-label">Fase Atual</span>
+        <h2 class="card-stage" id="card-stage">Filhote</h2>
+        <span class="card-days" id="card-days">0 / 30 dias</span>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="progress-bar"></div>
+        </div>
+        <div class="card-badges">
+          <span class="badge-fire" id="badge-streak">🔥 0 dias</span>
+          <span class="badge-ice" id="badge-freezes">❄️ 3 disponíveis</span>
+        </div>
+      </div>
+      <img src="dragon_transparent.png" alt="Drago" class="card-dragon" id="card-dragon" />
+    </div>
+
+    <div class="mood-message" id="mood-message">Drago está esperando por você.</div>
+
+    <div class="journey-grid" id="journey-grid"></div>
+  </div>
+
+  <!-- DAY DETAIL -->
+  <div id="screen-day" class="screen">
+    <div class="day-header">
+      <button class="btn-back" onclick="goHome()">←</button>
+      <h2 id="day-title">Hoje</h2>
+    </div>
+
+    <div class="day-dragon-wrap">
+      <img src="dragon_transparent.png" alt="Drago" class="day-dragon" id="day-dragon" />
+    </div>
+
+    <p class="day-label">Treinamento de hoje</p>
+
+    <div id="day-trainings" class="day-trainings"></div>
+
+    <div class="day-footer" id="day-footer"></div>
+  </div>
+
+  <!-- MODAL: Add Training -->
+  <div id="modal-training" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>Novo treinamento</h3>
+      <div class="modal-row">
+        <input id="training-emoji" type="text" placeholder="🏃" maxlength="2" class="input-emoji" />
+        <input id="training-text" type="text" placeholder="Caminhar 20 minutos" class="input-text" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+        <button class="btn-primary" onclick="confirmAddTraining()">Adicionar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
