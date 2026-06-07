@@ -28,11 +28,11 @@ var MOOD_MESSAGES = {
 
 var DRAGON_IMG  = 'dragon_transparent.png';
 var COIN_GOLD   = 'coin_gold.png';
-var COIN_SILVER = 'coin_silver.jpg';
-var COIN_FROZEN = 'coin_frozen.jpg';
-var BADGE_FIRE  = 'badge_fire.jpg';
-var BADGE_ICE   = 'badge_ice.jpg';
-var CASTLE_IMG  = 'castle.jpg';
+var COIN_SILVER = 'coin_silver.jpeg';
+var COIN_FROZEN = 'coin_frozen.jpeg';
+var BADGE_FIRE  = 'badge_fire.jpeg';
+var BADGE_ICE   = 'badge_ice.jpeg';
+var CASTLE_IMG  = 'castle.jpeg';
 var STATE_VERSION = 3;
 
 var TRAIL_IMAGES = [

@@ -114,8 +114,9 @@ html, body {
   border-radius: var(--radius);
   padding: 20px;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
+  min-height: 160px;
   box-shadow: var(--shadow);
   position: relative;
   overflow: hidden;
