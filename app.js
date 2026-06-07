@@ -28,11 +28,11 @@ var MOOD_MESSAGES = {
 
 var DRAGON_IMG  = 'dragon_transparent.png';
 var COIN_GOLD   = 'coin_gold.png';
-var COIN_SILVER = 'coin_silver.jpeg';
-var COIN_FROZEN = 'coin_frozen.jpeg';
-var BADGE_FIRE  = 'badge_fire.jpeg';
-var BADGE_ICE   = 'badge_ice.jpeg';
-var CASTLE_IMG  = 'castle.jpeg';
+var COIN_SILVER = 'coin_silver.jpg';
+var COIN_FROZEN = 'coin_frozen.jpg';
+var BADGE_FIRE  = 'badge_fire.jpg';
+var BADGE_ICE   = 'badge_ice.jpg';
+var CASTLE_IMG  = 'castle.jpg';
 var STATE_VERSION = 3;
 
 var TRAIL_IMAGES = [
@@ -78,8 +78,8 @@ function loadState() {
 // ── DATE HELPERS ──────────────────────────
 function today() {
   var d = new Date();
-  var mm = String(d.getMonth() + 1).padStart('2', '0');
-  var dd = String(d.getDate()).padStart('2', '0');
+  var mm = String(d.getMonth() + 1).padStart(2, '0');
+  var dd = String(d.getDate()).padStart(2, '0');
   return d.getFullYear() + '-' + mm + '-' + dd;
 }
 
@@ -146,11 +146,6 @@ function getCurrentStage() {
 }
 
 function getNextTarget() {
-  var stages = getStagesForMonth(weeksInThisMonth());
-  var liquid = state.monthLiquid;
-  for (var i = 0; i < stages.length; i++) {
-    if (stages[i].daysNeeded > liquid) return stages[i].daysNeeded;
-  }
   return 30;
 }
 
@@ -201,7 +196,7 @@ function autoFreezePastDays() {
 function recomputeStats() {
   var t = today();
   var now = new Date();
-  var mm = String(now.getMonth() + 1).padStart('2', '0');
+  var mm = String(now.getMonth() + 1).padStart(2, '0');
   var thisMonth = now.getFullYear() + '-' + mm;
 
   var streak = 0;
@@ -252,8 +247,8 @@ function buildJourneyTrail() {
 
   var allDays = [];
   for (var d = 1; d <= daysInMonth; d++) {
-    var dd = String(d).padStart('2', '0');
-    var mm = String(month + 1).padStart('2', '0');
+    var dd = String(d).padStart(2, '0');
+    var mm = String(month + 1).padStart(2, '0');
     allDays.push(year + '-' + mm + '-' + dd);
   }
 
@@ -446,7 +441,7 @@ function updateHomeCard() {
   document.getElementById('progress-bar').style.width = pct + '%';
 
   document.getElementById('badge-streak').textContent  = '🔥 ' + state.streak + ' dias';
-  document.getElementById('badge-freezes').textContent = '❄️ ' + state.monthFrozen + ' congelamentos';
+  document.getElementById('badge-freezes').textContent = '❄️ ' + state.monthFrozen + ' dias';
 
   var mood = computeMood(today());
   document.getElementById('mood-message').textContent = MOOD_MESSAGES[mood] || '';
