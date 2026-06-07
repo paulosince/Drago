@@ -538,7 +538,27 @@ function showHome() {
   saveState();
   updateHomeCard();
   buildJourneyTrail();
+  scrollToToday();
   showScreen('screen-home');
+}
+
+function scrollToToday() {
+  setTimeout(function() {
+    var trail = document.getElementById('journey-trail');
+    if (!trail) return;
+    // Encontra o elemento "hoje" pelo tag
+    var tags = trail.querySelectorAll('.trail-today-tag');
+    if (!tags.length) return;
+    var todayTag = tags[0];
+    var row = todayTag.closest('.trail-row');
+    if (!row) return;
+    var screen = document.getElementById('screen-home');
+    var screenHeight = screen.clientHeight;
+    var rowTop = row.offsetTop;
+    var rowHeight = row.offsetHeight;
+    // Rola para colocar "hoje" no centro da tela
+    screen.scrollTo({ top: rowTop - (screenHeight / 2) + (rowHeight / 2), behavior: 'smooth' });
+  }, 100);
 }
 
 // ── INIT ──────────────────────────────────
