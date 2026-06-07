@@ -348,10 +348,9 @@ function buildTrailCoin(dayKey, todayKey, pos) {
     })(dayKey);
   }
 
-  var parts = dayKey.split('-');
   var dateLabel = document.createElement('span');
   dateLabel.className = 'trail-date';
-  dateLabel.textContent = parts[2] + '/' + parts[1];
+  dateLabel.textContent = formatDate(dayKey);
 
   wrap.appendChild(coinWrap);
   wrap.appendChild(dateLabel);

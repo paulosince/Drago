@@ -99,10 +99,10 @@ html, body {
 }
 
 /* ── HOME ── */
-#screen-home { padding-bottom: 48px; padding-top: 52px; }
+#screen-home { padding-bottom: 48px; padding-top: 0; }
 .home-topbar {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 0 8px;
+  padding: 8px 0 8px;
 }
 .home-title { font-size: 22px; font-weight: 900; }
 .btn-settings { background: none; border: none; font-size: 22px; cursor: pointer; }
@@ -112,7 +112,7 @@ html, body {
   position: sticky;
   top: 0;
   z-index: 10;
-  padding: 0 16px 8px;
+  padding: env(safe-area-inset-top, 44px) 16px 8px;
   background: rgba(247, 249, 247, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -215,7 +215,7 @@ html, body {
   background: #ff6b35; color: white;
   font-size: 11px; font-weight: 800;
   border-radius: 99px; padding: 3px 10px;
-  text-transform: uppercase; margin-bottom: 2px;
+  text-transform: uppercase; margin-bottom: 4px;
 }
 
 .trail-coin-wrap {
@@ -223,16 +223,19 @@ html, body {
   width: 120px; height: 120px;
   cursor: pointer;
   transition: transform 0.15s;
+  padding: 6px;
+  margin: -6px;
 }
 .trail-coin-wrap:active { transform: scale(0.9); }
 
 .trail-coin-today {
-  filter: drop-shadow(0 0 10px rgba(61,186,120,0.7));
+  filter: drop-shadow(0 0 12px rgba(212, 160, 23, 0.85));
 }
 
 .trail-coin {
   width: 120px; height: 120px;
   border-radius: 50%; object-fit: cover;
+  display: block;
 }
 
 .trail-badge {
@@ -246,6 +249,9 @@ html, body {
 
 .trail-date {
   font-size: 11px; color: var(--text-soft); font-weight: 600;
+  text-align: center;
+  margin-top: 4px;
+  align-self: center;
 }
 
 
