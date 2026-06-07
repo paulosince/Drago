@@ -223,14 +223,10 @@ html, body {
   width: 120px; height: 120px;
   cursor: pointer;
   transition: transform 0.15s;
-  padding: 6px;
-  margin: -6px;
 }
 .trail-coin-wrap:active { transform: scale(0.9); }
 
-.trail-coin-today {
-  filter: drop-shadow(0 0 12px rgba(212, 160, 23, 0.85));
-}
+.trail-coin-today { /* sem brilho */ }
 
 .trail-coin {
   width: 120px; height: 120px;
@@ -249,9 +245,9 @@ html, body {
 
 .trail-date {
   font-size: 11px; color: var(--text-soft); font-weight: 600;
-  text-align: center;
   margin-top: 4px;
-  align-self: center;
+  width: 120px;
+  text-align: center;
 }
 
 
