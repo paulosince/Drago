@@ -487,12 +487,26 @@ function showHome() {
 
 function showSplash(callback) {
   showScreen('screen-splash');
-  setTimeout(callback, 2200);
+  setTimeout(() => {
+    try { callback(); }
+    catch(e) {
+      console.error('Drago init error:', e);
+      // fallback: vai pro setup
+      document.getElementById('setup-back').style.display = 'none';
+      renderSetupList();
+      showScreen('screen-setup');
+    }
+  }, 2200);
 }
 
 // ── INIT ───────────────────────────────────
 function init() {
-  loadState();
+  try {
+    loadState();
+  } catch(e) {
+    console.error('loadState error:', e);
+    localStorage.removeItem('drago_state');
+  }
 
   const t = today();
   if (!state.days[t]) {
