@@ -1,79 +1,122 @@
-// ─────────────────────────────────────────
-//  DRAGO — app.js
-// ─────────────────────────────────────────
+// DRAGO — app.js v3
 
-const MOODS = ['Feliz', 'Normal', 'Cansado', 'Exausto'];
+// ── DEBUG VISUAL ──────────────────────────
+function showDebug(msg) {
+  var el = document.getElementById('debug-msg');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'debug-msg';
+    el.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:red;color:white;padding:12px;font-size:12px;z-index:9999;white-space:pre-wrap;word-break:break-all;';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+}
 
-const MOOD_MESSAGES = {
+window.onerror = function(msg, src, line, col, err) {
+  showDebug('JS ERROR: ' + msg + '\nLinha: ' + line + '\n' + (err ? err.stack : ''));
+};
+
+// ── CONSTANTS ─────────────────────────────
+var MOODS = ['Feliz', 'Normal', 'Cansado', 'Exausto'];
+
+var MOOD_MESSAGES = {
   'Feliz':   'Drago está radiante! Continue assim.',
   'Normal':  'Drago está te esperando. Bora treinar!',
   'Cansado': 'Drago precisa da sua ajuda hoje.',
-  'Exausto': 'Drago está exausto. Ele precisa de você!',
+  'Exausto': 'Drago está exausto. Ele precisa de você!'
 };
 
-const DRAGON_IMG  = 'dragon_transparent.png';
-const COIN_GOLD   = 'coin_gold.png';
-const COIN_SILVER = 'coin_silver.jpg';
-const COIN_FROZEN = 'coin_frozen.jpg';
-const BADGE_FIRE  = 'badge_fire.jpg';
-const BADGE_ICE   = 'badge_ice.jpg';
-const CASTLE_IMG  = 'castle.jpg';
+var DRAGON_IMG  = 'dragon_transparent.png';
+var COIN_GOLD   = 'coin_gold.png';
+var COIN_SILVER = 'coin_silver.jpg';
+var COIN_FROZEN = 'coin_frozen.jpg';
+var BADGE_FIRE  = 'badge_fire.jpg';
+var BADGE_ICE   = 'badge_ice.jpg';
+var CASTLE_IMG  = 'castle.jpg';
+var STATE_VERSION = 3;
 
-// Imagens temáticas que aparecem na trilha
-const TRAIL_IMAGES = [
-  { src: DRAGON_IMG,  label: 'Drago' },
-  { src: CASTLE_IMG,  label: 'Castelo' },
-  { src: DRAGON_IMG,  label: 'Drago' },
-  { src: CASTLE_IMG,  label: 'Castelo' },
+var TRAIL_IMAGES = [
+  { src: DRAGON_IMG, label: 'Drago' },
+  { src: CASTLE_IMG, label: 'Castelo' },
+  { src: DRAGON_IMG, label: 'Drago' },
+  { src: CASTLE_IMG, label: 'Castelo' }
 ];
 
-// ── STATE ──────────────────────────────────
-let state = {
+// ── STATE ─────────────────────────────────
+var state = {
   trainings:   [],
   days:        {},
   streak:      0,
   monthLiquid: 0,
   monthFrozen: 0,
   monthStart:  null,
+  version:     STATE_VERSION
 };
 
-let currentDayKey = null;
+var currentDayKey = null;
 
-// ── PERSISTENCE ────────────────────────────
+// ── PERSISTENCE ───────────────────────────
 function saveState() {
-  localStorage.setItem('drago_state', JSON.stringify(state));
-}
-function loadState() {
-  const raw = localStorage.getItem('drago_state');
-  if (raw) state = { ...state, ...JSON.parse(raw) };
+  try {
+    state.version = STATE_VERSION;
+    localStorage.setItem('drago_v3', JSON.stringify(state));
+  } catch(e) { showDebug('saveState error: ' + e.message); }
 }
 
-// ── DATE HELPERS ───────────────────────────
+function loadState() {
+  try {
+    var raw = localStorage.getItem('drago_v3');
+    if (!raw) return;
+    var parsed = JSON.parse(raw);
+    state = Object.assign({}, state, parsed);
+  } catch(e) {
+    showDebug('loadState error: ' + e.message);
+    localStorage.removeItem('drago_v3');
+  }
+}
+
+// ── DATE HELPERS ──────────────────────────
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  var d = new Date();
+  var mm = String(d.getMonth() + 1).padStart('2', '0');
+  var dd = String(d.getDate()).padStart('2', '0');
+  return d.getFullYear() + '-' + mm + '-' + dd;
 }
+
+// padStart polyfill
+if (!String.prototype.padStart) {
+  String.prototype.padStart = function(len, fill) {
+    var s = String(this);
+    while (s.length < len) s = fill + s;
+    return s;
+  };
+}
+
 function formatDate(iso) {
-  const [y, m, d] = iso.split('-');
-  const date = new Date(+y, +m - 1, +d);
-  const days = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
-  return `${days[date.getDay()]} ${d}/${m}`;
+  var parts = iso.split('-');
+  var date = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+  var days = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+  return days[date.getDay()] + ' ' + parts[2] + '/' + parts[1];
 }
+
 function isWeekend(iso) {
-  const [y, m, d] = iso.split('-');
-  const day = new Date(+y, +m - 1, +d).getDay();
+  var parts = iso.split('-');
+  var day = new Date(+parts[0], +parts[1] - 1, +parts[2]).getDay();
   return day === 0 || day === 6;
 }
+
 function weeksInMonth(year, month) {
-  const firstDay = new Date(year, month - 1, 1).getDay();
-  const dim = new Date(year, month, 0).getDate();
+  var firstDay = new Date(year, month - 1, 1).getDay();
+  var dim = new Date(year, month, 0).getDate();
   return Math.ceil((firstDay + dim) / 7);
 }
+
 function weeksInThisMonth() {
-  const now = new Date();
+  var now = new Date();
   return weeksInMonth(now.getFullYear(), now.getMonth() + 1);
 }
 
-// ── STAGE LOGIC ────────────────────────────
+// ── STAGE LOGIC ───────────────────────────
 function getStagesForMonth(weeks) {
   if (weeks >= 5) {
     return [
@@ -81,102 +124,111 @@ function getStagesForMonth(weeks) {
       { name: 'Criança',     daysNeeded: 6  },
       { name: 'Adolescente', daysNeeded: 12 },
       { name: 'Jovem',       daysNeeded: 18 },
-      { name: 'Adulto',      daysNeeded: 24 },
+      { name: 'Adulto',      daysNeeded: 24 }
     ];
   }
   return [
     { name: 'Filhote', daysNeeded: 0  },
     { name: 'Criança', daysNeeded: 7  },
     { name: 'Jovem',   daysNeeded: 15 },
-    { name: 'Adulto',  daysNeeded: 22 },
+    { name: 'Adulto',  daysNeeded: 22 }
   ];
 }
+
 function getCurrentStage() {
-  const stages = getStagesForMonth(weeksInThisMonth());
-  const liquid = state.monthLiquid;
-  let stage = stages[0];
-  for (const s of stages) { if (liquid >= s.daysNeeded) stage = s; }
+  var stages = getStagesForMonth(weeksInThisMonth());
+  var liquid = state.monthLiquid;
+  var stage = stages[0];
+  for (var i = 0; i < stages.length; i++) {
+    if (liquid >= stages[i].daysNeeded) stage = stages[i];
+  }
   return stage;
 }
+
 function getNextTarget() {
-  const stages = getStagesForMonth(weeksInThisMonth());
-  const liquid = state.monthLiquid;
-  for (const s of stages) { if (s.daysNeeded > liquid) return s.daysNeeded; }
+  var stages = getStagesForMonth(weeksInThisMonth());
+  var liquid = state.monthLiquid;
+  for (var i = 0; i < stages.length; i++) {
+    if (stages[i].daysNeeded > liquid) return stages[i].daysNeeded;
+  }
   return 30;
 }
 
-// ── MOOD ───────────────────────────────────
+// ── MOOD ──────────────────────────────────
 function computeMood(dayKey) {
-  const d = state.days[dayKey];
+  var d = state.days[dayKey];
   if (!d) return 'Exausto';
-  const total = state.trainings.length;
+  var total = state.trainings.length;
   if (total === 0) return 'Feliz';
-  const done = d.checks.filter(Boolean).length;
-  const ratio = done / total;
+  var done = d.checks.filter(function(c) { return c; }).length;
+  var ratio = done / total;
   if (ratio === 1) return 'Feliz';
-  const hour = new Date().getHours();
-  let timePenalty = hour >= 21 ? 2 : hour >= 17 ? 1 : 0;
-  const base = ratio >= 0.75 ? 0 : ratio >= 0.5 ? 1 : ratio >= 0.25 ? 2 : 3;
+  var hour = new Date().getHours();
+  var timePenalty = hour >= 21 ? 2 : hour >= 17 ? 1 : 0;
+  var base = ratio >= 0.75 ? 0 : ratio >= 0.5 ? 1 : ratio >= 0.25 ? 2 : 3;
   return MOODS[Math.min(base + timePenalty, MOODS.length - 1)];
 }
 
-// ── DAY STATUS ─────────────────────────────
+// ── DAY STATUS ────────────────────────────
 function isDayComplete(dayKey) {
-  const d = state.days[dayKey];
+  var d = state.days[dayKey];
   if (!d || state.trainings.length === 0) return false;
-  return d.checks.every(Boolean);
-}
-function isDayFrozen(dayKey) {
-  return state.days[dayKey]?.frozen === true;
+  return d.checks.every(function(c) { return c; });
 }
 
-// ── AUTO-FREEZE PAST DAYS ──────────────────
+function isDayFrozen(dayKey) {
+  return state.days[dayKey] && state.days[dayKey].frozen === true;
+}
+
+// ── AUTO-FREEZE ───────────────────────────
 function autoFreezePastDays() {
-  const t = today();
-  let changed = false;
-  for (const key of Object.keys(state.days)) {
+  var t = today();
+  var changed = false;
+  var keys = Object.keys(state.days);
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
     if (key >= t) continue;
-    const d = state.days[key];
+    var d = state.days[key];
     if (!d.frozen && !isDayComplete(key)) {
       d.frozen = true;
       changed = true;
     }
   }
-  if (changed) {
-    recomputeStats();
-    saveState();
-  }
+  if (changed) saveState();
 }
 
-// ── RECOMPUTE STATS ────────────────────────
+// ── RECOMPUTE STATS ───────────────────────
 function recomputeStats() {
-  const t = today();
-  const now = new Date();
-  const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  var t = today();
+  var now = new Date();
+  var mm = String(now.getMonth() + 1).padStart('2', '0');
+  var thisMonth = now.getFullYear() + '-' + mm;
 
-  let streak = 0;
-  let monthLiquid = 0;
-  let monthFrozen = 0;
+  var streak = 0;
+  var monthLiquid = 0;
+  var monthFrozen = 0;
 
-  // Count this month
-  for (const [key, d] of Object.entries(state.days)) {
-    if (!key.startsWith(thisMonth)) continue;
+  var keys = Object.keys(state.days);
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    if (key.indexOf(thisMonth) !== 0) continue;
+    var d = state.days[key];
     if (d.frozen) monthFrozen++;
     else if (isDayComplete(key)) monthLiquid++;
   }
 
-  // Streak: walk backwards from today
-  let cur = new Date(t);
+  // Streak: walk backwards
+  var cur = new Date(t);
   while (true) {
-    const key = cur.toISOString().slice(0, 10);
-    const d = state.days[key];
-    if (!d) break;
-    if (d.frozen) { cur.setDate(cur.getDate() - 1); continue; }
-    if (isDayComplete(key)) {
+    var kk = cur.toISOString().slice(0, 10);
+    var dd = state.days[kk];
+    if (!dd) break;
+    if (dd.frozen) { cur.setDate(cur.getDate() - 1); continue; }
+    if (isDayComplete(kk)) {
       streak++;
       cur.setDate(cur.getDate() - 1);
     } else {
-      if (key < t) break;
+      if (kk < t) break;
       cur.setDate(cur.getDate() - 1);
     }
   }
@@ -186,203 +238,192 @@ function recomputeStats() {
   state.monthFrozen = monthFrozen;
 }
 
-// ── TRAIL / JOURNEY ────────────────────────
+// ── TRAIL ─────────────────────────────────
 function buildJourneyTrail() {
-  const trail = document.getElementById('journey-trail');
+  var trail = document.getElementById('journey-trail');
+  if (!trail) return;
   trail.innerHTML = '';
 
-  const t = today();
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  var t = today();
+  var now = new Date();
+  var year = now.getFullYear();
+  var month = now.getMonth();
+  var daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  const allDays = [];
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dd = String(d).padStart(2, '0');
-    const mm = String(month + 1).padStart(2, '0');
-    allDays.push(`${year}-${mm}-${dd}`);
+  var allDays = [];
+  for (var d = 1; d <= daysInMonth; d++) {
+    var dd = String(d).padStart('2', '0');
+    var mm = String(month + 1).padStart('2', '0');
+    allDays.push(year + '-' + mm + '-' + dd);
   }
 
-  // Insert a thematic image every 7 days
-  const imageInterval = 7;
-  let imgIndex = 0;
+  var imgIndex = 0;
+  var positions = ['left', 'center', 'right', 'right', 'center', 'left'];
 
-  for (let i = 0; i < allDays.length; i++) {
-    // Insert trail image before every 7th day (except the first)
-    if (i > 0 && i % imageInterval === 0) {
-      const img = TRAIL_IMAGES[imgIndex % TRAIL_IMAGES.length];
+  for (var i = 0; i < allDays.length; i++) {
+    if (i > 0 && i % 7 === 0) {
+      var imgData = TRAIL_IMAGES[imgIndex % TRAIL_IMAGES.length];
       imgIndex++;
-      const imgEl = buildTrailImage(img, allDays[i - 1] < t);
-      trail.appendChild(imgEl);
+      trail.appendChild(buildTrailImage(imgData, allDays[i - 1] < t));
     }
-
-    const dayEl = buildTrailCoin(allDays[i], t, i);
-    trail.appendChild(dayEl);
+    var pos = positions[i % 6];
+    trail.appendChild(buildTrailCoin(allDays[i], t, pos));
   }
 }
 
-function buildTrailImage(img, isPast) {
-  const wrap = document.createElement('div');
+function buildTrailImage(imgData, isPast) {
+  var wrap = document.createElement('div');
   wrap.className = 'trail-image-wrap';
-  const el = document.createElement('img');
-  el.src = img.src;
-  el.alt = img.label;
-  el.className = 'trail-image' + (isPast ? ' trail-image-past' : ' trail-image-future');
+  var el = document.createElement('img');
+  el.src = imgData.src;
+  el.alt = imgData.label;
+  el.className = 'trail-image ' + (isPast ? 'trail-image-past' : 'trail-image-future');
   wrap.appendChild(el);
   return wrap;
 }
 
-function buildTrailCoin(dayKey, todayKey, index) {
-  const isToday   = dayKey === todayKey;
-  const isPast    = dayKey < todayKey;
-  const isFuture  = dayKey > todayKey;
-  const complete  = isDayComplete(dayKey);
-  const frozen    = isDayFrozen(dayKey);
-  const weekend   = isWeekend(dayKey);
+function buildTrailCoin(dayKey, todayKey, pos) {
+  var isToday  = dayKey === todayKey;
+  var isPast   = dayKey < todayKey;
+  var isFuture = dayKey > todayKey;
+  var complete = isDayComplete(dayKey);
+  var frozen   = isDayFrozen(dayKey);
+  var weekend  = isWeekend(dayKey);
 
-  // Position: alternating S-curve pattern
-  // Groups of 3: left, center, right — creating a zigzag
-  const pos = index % 6;
-  let align = 'center';
-  if (pos === 0 || pos === 5) align = 'left';
-  else if (pos === 1 || pos === 4) align = 'center';
-  else if (pos === 2 || pos === 3) align = 'right';
-
-  const wrap = document.createElement('div');
-  wrap.className = `trail-step trail-${align}`;
+  var wrap = document.createElement('div');
+  wrap.className = 'trail-step trail-' + pos;
 
   if (isToday) {
-    const todayTag = document.createElement('div');
-    todayTag.className = 'trail-today-tag';
-    todayTag.textContent = 'hoje';
-    wrap.appendChild(todayTag);
+    var tag = document.createElement('div');
+    tag.className = 'trail-today-tag';
+    tag.textContent = 'hoje';
+    wrap.appendChild(tag);
   }
 
-  const coinWrap = document.createElement('div');
+  var coinWrap = document.createElement('div');
   coinWrap.className = 'trail-coin-wrap' + (isToday ? ' trail-coin-today' : '');
 
-  const coin = document.createElement('img');
+  var coin = document.createElement('img');
   coin.className = 'trail-coin';
 
   if (frozen) {
     coin.src = COIN_FROZEN;
-    coin.alt = 'Congelado';
   } else if (complete) {
     coin.src = weekend ? COIN_GOLD : COIN_SILVER;
-    coin.alt = 'Completo';
   } else if (isToday) {
     coin.src = weekend ? COIN_GOLD : COIN_SILVER;
-    coin.alt = 'Hoje';
-  } else if (isFuture) {
-    coin.src = COIN_SILVER;
-    coin.alt = 'Futuro';
-    coin.style.opacity = '0.4';
   } else {
-    // Past incomplete — should have been auto-frozen, but just in case
     coin.src = COIN_SILVER;
-    coin.alt = 'Incompleto';
     coin.style.opacity = '0.4';
   }
 
   coinWrap.appendChild(coin);
 
-  // Badge
   if (complete || frozen) {
-    const badge = document.createElement('img');
+    var badge = document.createElement('img');
     badge.className = 'trail-badge';
     badge.src = frozen ? BADGE_ICE : BADGE_FIRE;
-    badge.alt = frozen ? 'Congelado' : 'Feito';
     coinWrap.appendChild(badge);
   }
 
   if (isPast || isToday) {
     wrap.style.cursor = 'pointer';
-    wrap.addEventListener('click', () => openDay(dayKey));
+    (function(dk) {
+      wrap.addEventListener('click', function() { openDay(dk); });
+    })(dayKey);
   }
 
-  const [, m, d] = dayKey.split('-');
-  const dateLabel = document.createElement('span');
+  var parts = dayKey.split('-');
+  var dateLabel = document.createElement('span');
   dateLabel.className = 'trail-date';
-  dateLabel.textContent = `${d}/${m}`;
+  dateLabel.textContent = parts[2] + '/' + parts[1];
 
   wrap.appendChild(coinWrap);
   wrap.appendChild(dateLabel);
   return wrap;
 }
 
-// ── OPEN DAY ───────────────────────────────
+// ── OPEN DAY ──────────────────────────────
 function openDay(dayKey) {
   currentDayKey = dayKey;
 
   if (!state.days[dayKey]) {
-    state.days[dayKey] = { checks: state.trainings.map(() => false), frozen: false };
+    state.days[dayKey] = { checks: state.trainings.map(function() { return false; }), frozen: false };
     saveState();
   }
 
-  const d = state.days[dayKey];
+  var d = state.days[dayKey];
   while (d.checks.length < state.trainings.length) d.checks.push(false);
 
-  const isToday = dayKey === today();
-  const frozen  = isDayFrozen(dayKey);
+  var isToday = dayKey === today();
+  var frozen  = isDayFrozen(dayKey);
 
-  // Header
   document.getElementById('day-title').textContent = isToday ? 'Hoje' : formatDate(dayKey);
 
-  // Card mood label
-  const mood = isToday ? computeMood(dayKey) : (isDayComplete(dayKey) ? 'Feliz' : frozen ? 'Normal' : 'Cansado');
+  var mood = isToday ? computeMood(dayKey) : (isDayComplete(dayKey) ? 'Feliz' : frozen ? 'Normal' : 'Cansado');
   document.getElementById('day-mood').textContent = mood;
 
-  // Trainings
   renderDayTrainings(dayKey, isToday && !frozen);
-
-  // Footer message
   renderDayFooter(dayKey, isToday, frozen);
-
   showScreen('screen-day');
 }
 
 function renderDayTrainings(dayKey, editable) {
-  const container = document.getElementById('day-trainings');
+  var container = document.getElementById('day-trainings');
   container.innerHTML = '';
-  const d = state.days[dayKey];
+  var d = state.days[dayKey];
 
-  state.trainings.forEach((tr, i) => {
-    const item = document.createElement('div');
-    item.className = 'training-check' + (d.checks[i] ? ' done' : '');
+  for (var i = 0; i < state.trainings.length; i++) {
+    var tr = state.trainings[i];
+    var done = d.checks[i];
+    var item = document.createElement('div');
+    item.className = 'training-check' + (done ? ' done' : '');
 
-    item.innerHTML = `
-      <span class="tc-emoji">${tr.emoji}</span>
-      <span class="tc-text">${tr.text}</span>
-      <div class="tc-checkbox">${d.checks[i] ? '✓' : ''}</div>
-    `;
+    var emoji = document.createElement('span');
+    emoji.className = 'tc-emoji';
+    emoji.textContent = tr.emoji;
 
-    if (editable) item.addEventListener('click', () => toggleCheck(dayKey, i));
+    var text = document.createElement('span');
+    text.className = 'tc-text';
+    text.textContent = tr.text;
+
+    var cb = document.createElement('div');
+    cb.className = 'tc-checkbox';
+    cb.textContent = done ? '✓' : '';
+
+    item.appendChild(emoji);
+    item.appendChild(text);
+    item.appendChild(cb);
+
+    if (editable) {
+      (function(idx) {
+        item.addEventListener('click', function() { toggleCheck(dayKey, idx); });
+      })(i);
+    }
+
     container.appendChild(item);
-  });
+  }
 }
 
 function renderDayFooter(dayKey, isToday, frozen) {
-  const footer = document.getElementById('day-footer');
+  var footer = document.getElementById('day-footer');
   footer.innerHTML = '';
-
   if (frozen) {
-    footer.innerHTML = `<div class="day-status-msg day-status-frozen">❄️ Dia congelado. Drago carrega essa cicatriz.</div>`;
+    footer.innerHTML = '<div class="day-status-msg day-status-frozen">❄️ Dia congelado. Drago carrega essa cicatriz.</div>';
     return;
   }
   if (isDayComplete(dayKey)) {
-    footer.innerHTML = `<div class="day-status-msg day-status-complete">🔥 Drago está mais preparado para o inverno!</div>`;
+    footer.innerHTML = '<div class="day-status-msg day-status-complete">🔥 Drago está mais preparado para o inverno!</div>';
     return;
   }
   if (!isToday) {
-    footer.innerHTML = `<div class="day-status-msg day-status-frozen">❄️ Dia congelado. Drago carrega essa cicatriz.</div>`;
+    footer.innerHTML = '<div class="day-status-msg day-status-frozen">❄️ Dia congelado. Drago carrega essa cicatriz.</div>';
   }
 }
 
-// ── TOGGLE CHECK ───────────────────────────
+// ── TOGGLE CHECK ──────────────────────────
 function toggleCheck(dayKey, index) {
-  const d = state.days[dayKey];
-  d.checks[index] = !d.checks[index];
+  state.days[dayKey].checks[index] = !state.days[dayKey].checks[index];
   saveState();
   renderDayTrainings(dayKey, dayKey === today());
   renderDayFooter(dayKey, dayKey === today(), false);
@@ -392,53 +433,52 @@ function toggleCheck(dayKey, index) {
   buildJourneyTrail();
 }
 
-// ── HOME CARD ──────────────────────────────
+// ── HOME CARD ─────────────────────────────
 function updateHomeCard() {
-  const stage = getCurrentStage();
-  const next  = getNextTarget();
-  const liquid = state.monthLiquid;
+  var stage = getCurrentStage();
+  var next  = getNextTarget();
+  var liquid = state.monthLiquid;
 
   document.getElementById('card-stage').textContent = stage.name;
-  document.getElementById('card-days').textContent  = `${liquid} / ${next} dias`;
+  document.getElementById('card-days').textContent  = liquid + ' / ' + next + ' dias';
 
-  const pct = Math.min((liquid / next) * 100, 100);
+  var pct = Math.min((liquid / next) * 100, 100);
   document.getElementById('progress-bar').style.width = pct + '%';
 
-  document.getElementById('badge-streak').textContent  = `🔥 ${state.streak} dias`;
-  document.getElementById('badge-freezes').textContent = `❄️ ${state.monthFrozen} congelamentos`;
+  document.getElementById('badge-streak').textContent  = '🔥 ' + state.streak + ' dias';
+  document.getElementById('badge-freezes').textContent = '❄️ ' + state.monthFrozen + ' congelamentos';
 
-  const mood = computeMood(today());
+  var mood = computeMood(today());
   document.getElementById('mood-message').textContent = MOOD_MESSAGES[mood] || '';
 }
 
-// ── SETUP ──────────────────────────────────
+// ── SETUP ─────────────────────────────────
 function renderSetupList() {
-  const list = document.getElementById('training-list');
+  var list = document.getElementById('training-list');
   list.innerHTML = '';
-  state.trainings.forEach((tr, i) => {
-    const item = document.createElement('div');
+  for (var i = 0; i < state.trainings.length; i++) {
+    var tr = state.trainings[i];
+    var item = document.createElement('div');
     item.className = 'training-item';
-    item.innerHTML = `
-      <span class="t-emoji">${tr.emoji}</span>
-      <span class="t-text">${tr.text}</span>
-      <button class="t-delete" onclick="deleteTraining(${i})">✕</button>
-    `;
+    item.innerHTML = '<span class="t-emoji">' + tr.emoji + '</span>'
+      + '<span class="t-text">' + tr.text + '</span>'
+      + '<button class="t-delete" onclick="deleteTraining(' + i + ')">✕</button>';
     list.appendChild(item);
-  });
+  }
 }
 
 function addTraining() {
   document.getElementById('training-emoji').value = '';
   document.getElementById('training-text').value  = '';
   document.getElementById('modal-training').classList.remove('hidden');
-  setTimeout(() => document.getElementById('training-emoji').focus(), 100);
+  setTimeout(function() { document.getElementById('training-emoji').focus(); }, 100);
 }
 
 function confirmAddTraining() {
-  const emoji = document.getElementById('training-emoji').value.trim() || '🏃';
-  const text  = document.getElementById('training-text').value.trim();
+  var emoji = document.getElementById('training-emoji').value.trim() || '🏃';
+  var text  = document.getElementById('training-text').value.trim();
   if (!text) return;
-  state.trainings.push({ emoji, text });
+  state.trainings.push({ emoji: emoji, text: text });
   saveState();
   renderSetupList();
   closeModal();
@@ -470,9 +510,10 @@ function goToSetup() {
 function goBack() { showHome(); }
 function goHome() { showHome(); }
 
-// ── SCREENS ────────────────────────────────
+// ── SCREENS ───────────────────────────────
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  var screens = document.querySelectorAll('.screen');
+  for (var i = 0; i < screens.length; i++) screens[i].classList.remove('active');
   document.getElementById(id).classList.add('active');
 }
 
@@ -485,38 +526,23 @@ function showHome() {
   showScreen('screen-home');
 }
 
-function showSplash(callback) {
-  showScreen('screen-splash');
-  setTimeout(() => {
-    try { callback(); }
-    catch(e) {
-      console.error('Drago init error:', e);
-      // fallback: vai pro setup
-      document.getElementById('setup-back').style.display = 'none';
-      renderSetupList();
-      showScreen('screen-setup');
-    }
-  }, 2200);
-}
-
-// ── INIT ───────────────────────────────────
+// ── INIT ──────────────────────────────────
 function init() {
-  try {
-    loadState();
-  } catch(e) {
-    console.error('loadState error:', e);
-    localStorage.removeItem('drago_state');
-  }
+  loadState();
 
-  const t = today();
+  var t = today();
   if (!state.days[t]) {
-    state.days[t] = { checks: state.trainings.map(() => false), frozen: false };
+    state.days[t] = {
+      checks: state.trainings.map(function() { return false; }),
+      frozen: false
+    };
     saveState();
   }
 
-  const isFirstTime = state.trainings.length === 0;
+  var isFirstTime = state.trainings.length === 0;
 
-  showSplash(() => {
+  showScreen('screen-splash');
+  setTimeout(function() {
     if (isFirstTime) {
       document.getElementById('setup-back').style.display = 'none';
       renderSetupList();
@@ -524,7 +550,7 @@ function init() {
     } else {
       showHome();
     }
-  });
+  }, 2200);
 }
 
 document.getElementById('modal-training').addEventListener('click', function(e) {
