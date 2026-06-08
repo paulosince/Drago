@@ -776,6 +776,16 @@ function rebuildTrailAnimated() {
   document.addEventListener('touchend',   onTouchEnd,   { passive: true });
 })();
 
+// ── DRAGON GIF — para no último frame ────
+(function() {
+  var GIF_DURATION = 120 * 83; // 120 frames × 83ms = 9960ms
+  var el = document.getElementById('dragon-gif');
+  if (!el) return;
+  setTimeout(function() {
+    el.src = 'drago_filhote_still.png';
+  }, GIF_DURATION);
+})();
+
 document.getElementById('modal-training').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
