@@ -464,7 +464,6 @@ function updateHomeCard() {
   document.getElementById('badge-freezes').textContent = '❄️ ' + state.monthFrozen + ' dias';
 
   var mood = computeMood(today());
-  document.getElementById('mood-message').textContent = MOOD_MESSAGES[mood] || '';
 }
 
 // ── SETUP ─────────────────────────────────
@@ -565,7 +564,7 @@ function init() {
     } else {
       showHome();
     }
-  }, 4000);
+  }, 2200);
 }
 
 document.getElementById('modal-training').addEventListener('click', function(e) {
