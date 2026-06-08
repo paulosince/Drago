@@ -178,10 +178,13 @@ function isDayFrozen(dayKey) {
 // ── AUTO-FREEZE ───────────────────────────
 function autoFreezePastDays() {
   var t = today();
+  var startDate = state.monthStart || t;
   var changed = false;
   var keys = Object.keys(state.days);
   for (var i = 0; i < keys.length; i++) {
     var key = keys[i];
+    // Ignora dias anteriores ao início da jornada
+    if (key < startDate) continue;
     if (key >= t) continue;
     var d = state.days[key];
     if (!d.frozen && !isDayComplete(key)) {
@@ -198,6 +201,7 @@ function recomputeStats() {
   var now = new Date();
   var mm = String(now.getMonth() + 1).padStart(2, '0');
   var thisMonth = now.getFullYear() + '-' + mm;
+  var startDate = state.monthStart || t;
 
   var streak = 0;
   var monthLiquid = 0;
@@ -207,6 +211,7 @@ function recomputeStats() {
   for (var i = 0; i < keys.length; i++) {
     var key = keys[i];
     if (key.indexOf(thisMonth) !== 0) continue;
+    if (key < startDate) continue;
     var d = state.days[key];
     if (d.frozen) monthFrozen++;
     else if (isDayComplete(key)) monthLiquid++;
@@ -245,26 +250,25 @@ function buildJourneyTrail() {
   var month = now.getMonth();
   var daysInMonth = new Date(year, month + 1, 0).getDate();
 
+  // Só renderiza a partir do dia em que o usuário configurou o app
+  var startDate = state.monthStart || t;
+
   var allDays = [];
   for (var d = 1; d <= daysInMonth; d++) {
     var dd = String(d).padStart(2, '0');
     var mm = String(month + 1).padStart(2, '0');
-    allDays.push(year + '-' + mm + '-' + dd);
+    var key = year + '-' + mm + '-' + dd;
+    if (key >= startDate) allDays.push(key);
   }
 
-  // S-curve positions: cada grupo de 6 forma uma curva
-  // left, center-left, center-right, right, center-right, center-left
   var positions = ['left', 'center', 'right', 'right', 'center', 'left'];
-
-  // Imagens temáticas aparecem a cada 5 dias, no lado OPOSTO ao brasão
   var imgIndex = 0;
-  var imgEvery = 5; // a cada 5 brasões
+  var imgEvery = 5;
 
   for (var i = 0; i < allDays.length; i++) {
     var pos = positions[i % 6];
     var isPast = allDays[i] <= t;
 
-    // A cada `imgEvery` dias, mostra imagem no lado oposto
     var showImg = (i > 0 && i % imgEvery === 0);
     var imgData = showImg ? TRAIL_IMAGES[imgIndex % TRAIL_IMAGES.length] : null;
     if (showImg) imgIndex++;
@@ -564,6 +568,19 @@ function showHome(animateScroll) {
 // ── INIT ──────────────────────────────────
 function init() {
   loadState();
+
+  // Limpa dias criados antes do início da jornada (dados corrompidos)
+  if (state.monthStart) {
+    var keys = Object.keys(state.days);
+    var cleaned = false;
+    for (var i = 0; i < keys.length; i++) {
+      if (keys[i] < state.monthStart) {
+        delete state.days[keys[i]];
+        cleaned = true;
+      }
+    }
+    if (cleaned) saveState();
+  }
 
   var t = today();
   if (!state.days[t]) {
