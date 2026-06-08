@@ -162,14 +162,10 @@ html, body {
   z-index: 1;
 }
 
-.card-dragon-canvas {
+.card-dragon-gif {
   width: 140px;
   height: 140px;
-  /* Máscara radial dissolve as bordas no verde do card */
-  -webkit-mask-image: radial-gradient(ellipse 88% 88% at 52% 52%,
-    black 45%, rgba(0,0,0,0.5) 62%, transparent 78%);
-  mask-image: radial-gradient(ellipse 88% 88% at 52% 52%,
-    black 45%, rgba(0,0,0,0.5) 62%, transparent 78%);
+  object-fit: contain;
 }
 
 /* ── PULL-TO-REFRESH ── */

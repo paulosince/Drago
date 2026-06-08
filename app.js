@@ -563,7 +563,6 @@ function showHome(animateScroll) {
   updateHomeCard();
   buildJourneyTrail();
   showScreen('screen-home');
-  startChromaKey();
   scrollToToday(animateScroll);
 }
 
@@ -776,65 +775,6 @@ function rebuildTrailAnimated() {
   document.addEventListener('touchmove',  onTouchMove,  { passive: true });
   document.addEventListener('touchend',   onTouchEnd,   { passive: true });
 })();
-
-// ── DRAGON VIDEO CHROMA KEY ───────────────
-var chromaKeyStarted = false;
-
-function startChromaKey() {
-  if (chromaKeyStarted) return;
-
-  var video  = document.getElementById('dragon-video');
-  var canvas = document.getElementById('dragon-canvas');
-  if (!video || !canvas) return;
-
-  chromaKeyStarted = true;
-
-  var ctx = canvas.getContext('2d', { willReadFrequently: true });
-  canvas.width  = 720;
-  canvas.height = 720;
-
-  // Cor do fundo verde do vídeo: R=62 G=142 B=81
-  var CK_R = 62, CK_G = 142, CK_B = 81;
-  var CK_THRESH = 80;
-
-  function drawFrame() {
-    if (video.readyState < 2) {
-      requestAnimationFrame(drawFrame);
-      return;
-    }
-
-    // Recorta região central 720×720 do vídeo 1280×720
-    var srcX = (video.videoWidth - video.videoHeight) / 2;
-    ctx.drawImage(video, srcX, 0, video.videoHeight, video.videoHeight, 0, 0, 720, 720);
-
-    var imgData = ctx.getImageData(0, 0, 720, 720);
-    var d = imgData.data;
-
-    for (var i = 0; i < d.length; i += 4) {
-      var r = d[i], g = d[i+1], b = d[i+2];
-      var dr = r - CK_R, dg = g - CK_G, db = b - CK_B;
-      var dist = (dr*dr + dg*dg + db*db) / 100;
-
-      if (dist < CK_THRESH) {
-        d[i+3] = 0;
-      } else if (dist < CK_THRESH * 2) {
-        d[i+3] = Math.round(((dist - CK_THRESH) / CK_THRESH) * 255);
-      }
-    }
-
-    ctx.putImageData(imgData, 0, 0);
-    requestAnimationFrame(drawFrame);
-  }
-
-  video.addEventListener('canplay', function() {
-    video.play().catch(function(){});
-  });
-
-  video.addEventListener('play', drawFrame);
-
-  // Força load — necessário quando o elemento estava oculto
-  video.load();
-}
 
 document.getElementById('modal-training').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
