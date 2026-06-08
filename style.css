@@ -156,7 +156,7 @@ html, body {
 }
 .card-dragon-wrap {
   position: absolute;
-  left: 0;
+  right: 0;
   top: 0;
   bottom: 0;
   z-index: -1;
@@ -322,7 +322,26 @@ html, body {
 .trail-center { align-items: center; }
 .trail-right { padding-right: 24px; align-items: flex-end; }
 
-/* Radar rings para o brasão de hoje */
+/* Data sempre centralizada em relação ao brasão */
+.trail-date {
+  width: 104px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: transparent;
+  background: linear-gradient(120deg, #aab8aa 0%, #7a9080 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.trail-date-today {
+  background: linear-gradient(120deg, #3dba78 0%, #2e9e63 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 900;
+}
 .trail-coin-radar {
   position: relative;
   width: 104px;
@@ -376,24 +395,6 @@ html, body {
   z-index: 2;
 }
 
-/* Data estilosa */
-.trail-date {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: transparent;
-  background: linear-gradient(120deg, #aab8aa 0%, #7a9080 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-}
-.trail-date-today {
-  background: linear-gradient(120deg, #3dba78 0%, #2e9e63 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  font-weight: 900;
-}
 
 
 
