@@ -160,11 +160,6 @@ html, body {
   animation: dragonFloat 3s ease-in-out infinite; z-index: 1;
 }
 
-.mood-message {
-  text-align: center; font-size: 14px; color: var(--text-soft);
-  font-weight: 600; padding: 14px 20px 4px; font-style: italic;
-}
-
 /* ── TRAIL ── */
 .journey-trail {
   padding: 8px 0 32px;

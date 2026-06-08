@@ -472,9 +472,6 @@ function updateHomeCard() {
 
   document.getElementById('badge-streak').textContent  = '🔥 ' + state.streak + ' dias';
   document.getElementById('badge-freezes').textContent = '❄️ ' + state.monthFrozen + ' dias';
-
-  var mood = computeMood(today());
-  document.getElementById('mood-message').textContent = MOOD_MESSAGES[mood] || '';
 }
 
 // ── SETUP ─────────────────────────────────
@@ -542,13 +539,26 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
 }
 
-function showHome() {
+function scrollToToday(animate) {
+  var todayCoins = document.querySelectorAll('.trail-coin-radar');
+  if (!todayCoins.length) return;
+  var coin = todayCoins[0];
+  var screen = document.getElementById('screen-home');
+  setTimeout(function() {
+    var coinTop = coin.getBoundingClientRect().top + screen.scrollTop;
+    var target = coinTop - (screen.clientHeight / 2) + 60;
+    screen.scrollTo({ top: Math.max(0, target), behavior: animate ? 'smooth' : 'auto' });
+  }, 80);
+}
+
+function showHome(animateScroll) {
   autoFreezePastDays();
   recomputeStats();
   saveState();
   updateHomeCard();
   buildJourneyTrail();
   showScreen('screen-home');
+  scrollToToday(animateScroll);
 }
 
 // ── INIT ──────────────────────────────────
@@ -573,7 +583,7 @@ function init() {
       renderSetupList();
       showScreen('screen-setup');
     } else {
-      showHome();
+      showHome(true);
     }
   }, 2200);
 }
