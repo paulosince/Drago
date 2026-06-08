@@ -11,23 +11,10 @@
 </head>
 <body>
 
-  <!-- Pull-to-refresh indicator (fora da screen, fixo no topo) -->
-  <div id="ptr-indicator" class="ptr-indicator">
-    <div class="ptr-spinner">
-      <div class="ptr-dragon-wrap">
-        <img src="dragon_transparent.png" alt="" class="ptr-dragon" />
-      </div>
-      <svg class="ptr-ring" viewBox="0 0 44 44">
-        <circle cx="22" cy="22" r="18" />
-      </svg>
-    </div>
-    <span class="ptr-label">Atualizando Drago…</span>
-  </div>
-
   <!-- SPLASH -->
   <div id="screen-splash" class="screen active">
     <div class="splash-content">
-      <img src="dragon_transparent.png" alt="Drago" class="splash-dragon" />
+      <img src="drago_filhote.gif" alt="Drago" class="splash-dragon" />
       <h1 class="splash-title">Drago</h1>
       <p class="splash-subtitle">Evolua com disciplina</p>
     </div>
@@ -67,11 +54,11 @@
           <span class="badge-ice" id="badge-freezes">❄️ 0 congelamentos</span>
         </div>
       </div>
-      <div class="card-dragon-wrap">
-        <img id="dragon-gif" src="drago_filhote.gif" alt="Drago" class="card-dragon-gif" />
-      </div>
+      <img src="drago_card.webp" alt="Drago" class="card-dragon" />
     </div>
     </div>
+
+    <div class="mood-message" id="mood-message"></div>
 
     <div id="journey-trail" class="journey-trail"></div>
   </div>
@@ -85,7 +72,7 @@
 
     <!-- Card verde com dragão dentro -->
     <div class="day-card">
-      <img src="dragon_transparent.png" alt="Drago" class="day-card-dragon" />
+      <img src="drago_card.webp" alt="Drago" class="day-card-dragon" />
       <div class="day-card-info">
         <span class="day-card-label">Humor</span>
         <span class="day-card-mood" id="day-mood">Feliz</span>

@@ -54,7 +54,6 @@ html, body {
   object-fit: contain;
   filter: drop-shadow(0 16px 32px rgba(0,0,0,0.2));
   animation: dragonFloat 3s ease-in-out infinite;
-  clip-path: polygon(0% 0%, 100% 0%, 100% 74%, 82% 74%, 82% 100%, 0% 100%);
 }
 .splash-title {
   font-size: 52px; font-weight: 900; color: white;
@@ -167,7 +166,6 @@ html, body {
 .card-dragon-gif {
   height: 100%;
   width: auto;
-  clip-path: polygon(0% 0%, 100% 0%, 100% 69%, 74% 69%, 74% 100%, 0% 100%);
 }
 
 /* ── PULL-TO-REFRESH ── */
