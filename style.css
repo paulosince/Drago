@@ -16,7 +16,7 @@
 html, body {
   height: 100%;
   font-family: 'Nunito', sans-serif;
-  background: #f7f9f7;
+  background: #ffffff;
   color: var(--text);
   overflow: hidden;
 }
@@ -28,7 +28,7 @@ html, body {
   flex-direction: column;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  background: #f7f9f7;
+  background: #ffffff;
 }
 .screen.active { display: flex; }
 
@@ -95,7 +95,7 @@ html, body {
 .setup-footer {
   position: fixed; bottom: 0; left: 0; right: 0;
   padding: 16px 20px 32px;
-  background: linear-gradient(to top, #f7f9f7 70%, transparent);
+  background: linear-gradient(to top, #ffffff 70%, transparent);
 }
 
 /* ── HOME ── */
@@ -113,7 +113,7 @@ html, body {
   top: 0;
   z-index: 10;
   padding: env(safe-area-inset-top, 44px) 16px 8px;
-  background: rgba(247, 249, 247, 0.75);
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -185,12 +185,13 @@ html, body {
 /* Imagem temática lateral */
 .trail-scenic {
   position: absolute;
+  top: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
 }
-.trail-scenic-left  { left: 16px; }
-.trail-scenic-right { right: 16px; }
+.trail-scenic-left  { left: 0; }
+.trail-scenic-right { right: 0; }
 
 }
 .trail-image-future { filter: grayscale(100%) opacity(0.35); }
