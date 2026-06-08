@@ -54,6 +54,7 @@ html, body {
   object-fit: contain;
   filter: drop-shadow(0 16px 32px rgba(0,0,0,0.2));
   animation: dragonFloat 3s ease-in-out infinite;
+  clip-path: polygon(0% 0%, 100% 0%, 100% 74%, 82% 74%, 82% 100%, 0% 100%);
 }
 .splash-title {
   font-size: 52px; font-weight: 900; color: white;
@@ -163,13 +164,13 @@ html, body {
   display: flex;
   align-items: center;
 }
-
 .card-dragon-gif {
   height: 100%;
   width: auto;
+  clip-path: polygon(0% 0%, 100% 0%, 100% 69%, 74% 69%, 74% 100%, 0% 100%);
 }
-/* ── PULL-TO-REFRESH ── */
 
+/* ── PULL-TO-REFRESH ── */
 .ptr-indicator {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -182,13 +183,11 @@ html, body {
   pointer-events: none;
   z-index: 0;
 }
-
 .ptr-spinner {
   position: relative;
   width: 44px;
   height: 44px;
 }
-
 .ptr-dragon-wrap {
   position: absolute;
   inset: 0;
@@ -196,14 +195,11 @@ html, body {
   align-items: center;
   justify-content: center;
 }
-
 .ptr-dragon {
   width: 28px;
   height: 28px;
   object-fit: contain;
 }
-
-/* O SVG inteiro gira — evita bug de transform-origin em circle no Safari */
 .ptr-ring {
   position: absolute;
   inset: 0;
@@ -213,40 +209,32 @@ html, body {
   transform: rotate(-90deg);
   transform-origin: 22px 22px;
 }
-
 .ptr-ring circle {
   fill: none;
   stroke: var(--green);
   stroke-width: 3;
   stroke-linecap: round;
   stroke-dasharray: 113;
-  stroke-dashoffset: 113; /* controlado pelo JS durante pull */
+  stroke-dashoffset: 113;
 }
-
-/* Quando disparado: gira o SVG inteiro em torno do próprio centro */
 .ptr-indicator.ptr-firing .ptr-ring {
   animation: ptrSpin 0.75s linear infinite;
   transform-origin: 22px 22px;
 }
-
 .ptr-indicator.ptr-firing .ptr-ring circle {
   stroke-dashoffset: 0;
 }
-
 .ptr-indicator.ptr-firing .ptr-dragon {
   animation: ptrBounce 0.5s ease infinite alternate;
 }
-
 @keyframes ptrSpin {
   from { transform: rotate(-90deg); }
   to   { transform: rotate(270deg); }
 }
-
 @keyframes ptrBounce {
   from { transform: scale(1) translateY(0); }
   to   { transform: scale(1.18) translateY(-3px); }
 }
-
 .ptr-label {
   font-size: 12px;
   font-weight: 700;
@@ -260,8 +248,6 @@ html, body {
   opacity: 1;
   transform: translateY(0);
 }
-
-/* A screen desliza durante o pull */
 #screen-home {
   will-change: transform;
   z-index: 1;
@@ -283,8 +269,6 @@ html, body {
   flex-direction: column;
   gap: 0;
 }
-
-/* Cada linha da trilha: brasão + imagem lateral */
 .trail-row {
   position: relative;
   width: 100%;
@@ -292,8 +276,6 @@ html, body {
   display: flex;
   align-items: center;
 }
-
-/* Imagem temática lateral */
 .trail-scenic {
   position: absolute;
   display: flex;
@@ -302,14 +284,12 @@ html, body {
 }
 .trail-scenic-left  { left: 16px; }
 .trail-scenic-right { right: 16px; }
-
 .trail-scenic-img {
   width: 72px;
   height: 72px;
   object-fit: contain;
 }
 .trail-image-future { filter: grayscale(100%) opacity(0.35); }
-
 .trail-step {
   display: flex;
   flex-direction: column;
@@ -321,8 +301,6 @@ html, body {
 .trail-left  { padding-left: 24px;  align-items: flex-start; }
 .trail-center { align-items: center; }
 .trail-right { padding-right: 24px; align-items: flex-end; }
-
-/* Data sempre centralizada em relação ao brasão */
 .trail-date {
   width: 104px;
   text-align: center;
@@ -350,7 +328,6 @@ html, body {
   transition: transform 0.15s;
 }
 .trail-coin-radar:active { transform: scale(0.9); }
-
 .radar-ring {
   position: absolute;
   inset: 0;
@@ -360,12 +337,10 @@ html, body {
 }
 .radar-ring:nth-child(2) { animation-delay: 0.8s; }
 .radar-ring:nth-child(3) { animation-delay: 1.6s; }
-
 @keyframes radarPulse {
   0%   { transform: scale(1);    opacity: 0.7; }
   100% { transform: scale(1.7);  opacity: 0; }
 }
-
 .trail-coin-wrap {
   position: relative;
   width: 104px; height: 104px;
@@ -373,18 +348,15 @@ html, body {
   transition: transform 0.15s;
 }
 .trail-coin-wrap:active { transform: scale(0.9); }
-
 .trail-coin-today {
   filter: drop-shadow(0 0 10px rgba(61,186,120,0.7));
 }
-
 .trail-coin {
   position: relative;
   z-index: 1;
   width: 104px; height: 104px;
   border-radius: 50%; object-fit: cover;
 }
-
 .trail-badge {
   position: absolute;
   top: -4px; right: -4px;
@@ -395,9 +367,6 @@ html, body {
   z-index: 2;
 }
 
-
-
-
 /* ── DAY DETAIL ── */
 #screen-day { padding-bottom: 40px; }
 .day-header {
@@ -405,8 +374,6 @@ html, body {
   padding: 52px 20px 12px;
 }
 .day-header h2 { font-size: 22px; font-weight: 800; }
-
-/* Day card — Drago DENTRO do card verde */
 .day-card {
   margin: 0 16px 16px;
   background: linear-gradient(145deg, #4ecb87, #3dba78);
@@ -441,7 +408,6 @@ html, body {
 .day-card-mood {
   font-size: 24px; font-weight: 900; color: white;
 }
-
 .day-label {
   text-align: center; font-size: 13px; font-weight: 700;
   color: var(--text-soft); text-transform: uppercase;
@@ -466,7 +432,6 @@ html, body {
   transition: all 0.2s; font-size: 14px; flex-shrink: 0;
 }
 .training-check.done .tc-checkbox { background: var(--green); border-color: var(--green); color: white; }
-
 .day-footer { padding: 20px 20px 0; }
 .day-status-msg {
   border-radius: 16px; padding: 18px;
