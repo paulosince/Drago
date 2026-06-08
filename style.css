@@ -162,7 +162,6 @@ html, body {
 
 /* ── PULL-TO-REFRESH ── */
 
-/* Indicador fixo, atrás da screen — aparece quando a screen desce */
 .ptr-indicator {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -173,7 +172,7 @@ html, body {
   justify-content: center;
   gap: 6px;
   pointer-events: none;
-  z-index: 0; /* atrás da .screen que tem z-index maior */
+  z-index: 0;
 }
 
 .ptr-spinner {
@@ -194,15 +193,17 @@ html, body {
   width: 28px;
   height: 28px;
   object-fit: contain;
-  transition: transform 0.1s ease;
 }
 
+/* O SVG inteiro gira — evita bug de transform-origin em circle no Safari */
 .ptr-ring {
   position: absolute;
   inset: 0;
   width: 44px;
   height: 44px;
+  display: block;
   transform: rotate(-90deg);
+  transform-origin: 22px 22px;
 }
 
 .ptr-ring circle {
@@ -211,12 +212,17 @@ html, body {
   stroke-width: 3;
   stroke-linecap: round;
   stroke-dasharray: 113;
-  stroke-dashoffset: 113;
+  stroke-dashoffset: 113; /* controlado pelo JS durante pull */
+}
+
+/* Quando disparado: gira o SVG inteiro em torno do próprio centro */
+.ptr-indicator.ptr-firing .ptr-ring {
+  animation: ptrSpin 0.75s linear infinite;
+  transform-origin: 22px 22px;
 }
 
 .ptr-indicator.ptr-firing .ptr-ring circle {
   stroke-dashoffset: 0;
-  animation: ptrSpin 0.7s linear infinite;
 }
 
 .ptr-indicator.ptr-firing .ptr-dragon {
@@ -240,16 +246,15 @@ html, body {
   letter-spacing: 0.3px;
   opacity: 0;
   transform: translateY(4px);
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 .ptr-indicator.ptr-firing .ptr-label {
   opacity: 1;
   transform: translateY(0);
 }
 
-/* A screen desliza para baixo durante o pull */
+/* A screen desliza durante o pull */
 #screen-home {
-  transition: transform 0.0s linear; /* controlado pelo JS durante gesto */
   will-change: transform;
   z-index: 1;
 }

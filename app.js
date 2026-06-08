@@ -631,74 +631,101 @@ function rebuildTrailAnimated() {
 // ── PULL-TO-REFRESH ───────────────────────
 (function() {
   var PTR_THRESHOLD = 72;
-  var PTR_MAX       = 90;  // máximo de deslocamento visual
+  var PTR_MAX       = 90;
   var touchStartY   = 0;
   var pulling       = false;
   var fired         = false;
   var currentDY     = 0;
+  var hapticDone    = false;
 
-  var screen    = null;
-  var indicator = null;
-  var ring      = null;
+  var screenEl    = null;
+  var indicatorEl = null;
+  var ringCircle  = null;
+  var dragonEl    = null;
+  var labelEl     = null;
 
   function getEls() {
-    if (!screen)    screen    = document.getElementById('screen-home');
-    if (!indicator) indicator = document.getElementById('ptr-indicator');
-    if (!ring)      ring      = document.querySelector('.ptr-ring circle');
+    if (!screenEl)    screenEl    = document.getElementById('screen-home');
+    if (!indicatorEl) indicatorEl = document.getElementById('ptr-indicator');
+    if (!ringCircle)  ringCircle  = document.querySelector('.ptr-ring circle');
+    if (!dragonEl)    dragonEl    = document.querySelector('.ptr-dragon');
+    if (!labelEl)     labelEl     = document.querySelector('.ptr-label');
   }
 
-  // Resistência logarítmica: muito sensível no início, desacelera depois
   function resist(dy) {
     return Math.min(PTR_MAX, dy * (PTR_MAX / (PTR_MAX + dy * 0.6)));
   }
 
   function setScreenY(y) {
-    getEls();
-    if (!screen) return;
-    screen.style.transition = 'none';
-    screen.style.transform  = y > 0 ? 'translateY(' + y + 'px)' : '';
+    screenEl.style.transition = 'none';
+    screenEl.style.transform  = y > 0 ? 'translateY(' + y + 'px)' : '';
   }
 
-  function resetScreen(snap) {
-    getEls();
-    if (!screen) return;
-    screen.style.transition = snap ? 'transform 0.35s cubic-bezier(0.25, 1, 0.5, 1)' : 'none';
-    screen.style.transform  = '';
+  function resetScreen() {
+    screenEl.style.transition = 'transform 0.38s cubic-bezier(0.25, 1, 0.5, 1)';
+    screenEl.style.transform  = '';
   }
 
-  function updateRing(progress) {
-    if (ring) ring.style.strokeDashoffset = 113 - (113 * Math.min(progress, 1));
+  // Atualiza visuais durante o pull: arco + aparecimento do dragão
+  function updatePullVisuals(dy) {
+    var progress = Math.min(dy / PTR_THRESHOLD, 1);
+
+    // Arco SVG: constrói proporcionalmente
+    if (ringCircle) {
+      ringCircle.style.strokeDashoffset = 113 - (113 * progress);
+    }
+
+    // Dragão: aparece e cresce conforme puxa
+    if (dragonEl) {
+      var scale   = 0.4 + (progress * 0.6);   // 0.4 → 1.0
+      var opacity = 0.2 + (progress * 0.8);    // 0.2 → 1.0
+      dragonEl.style.transform = 'scale(' + scale + ')';
+      dragonEl.style.opacity   = opacity;
+    }
+
+    // Label aparece quando passa de 80% do threshold
+    if (labelEl) {
+      labelEl.style.opacity   = progress > 0.8 ? ((progress - 0.8) / 0.2) : 0;
+      labelEl.style.transform = progress > 0.8 ? 'translateY(0)' : 'translateY(4px)';
+      labelEl.textContent     = progress >= 1 ? 'Solte para atualizar!' : 'Atualizando Drago…';
+    }
+  }
+
+  function resetPullVisuals() {
+    if (ringCircle) ringCircle.style.strokeDashoffset = '113';
+    if (dragonEl)   { dragonEl.style.transform = ''; dragonEl.style.opacity = ''; }
+    if (labelEl)    { labelEl.style.opacity = '0'; labelEl.style.transform = 'translateY(4px)'; }
   }
 
   function onTouchStart(e) {
     getEls();
-    if (!screen || !screen.classList.contains('active')) return;
-    if (screen.scrollTop > 2) return;
+    if (!screenEl || !screenEl.classList.contains('active')) return;
+    if (screenEl.scrollTop > 2) return;
     touchStartY = e.touches[0].clientY;
     pulling     = true;
     fired       = false;
     currentDY   = 0;
+    hapticDone  = false;
   }
 
   function onTouchMove(e) {
     if (!pulling || fired) return;
     getEls();
-    if (!screen || !screen.classList.contains('active')) return;
-    if (screen.scrollTop > 2) { pulling = false; resetScreen(false); return; }
+    if (!screenEl || !screenEl.classList.contains('active')) return;
+    if (screenEl.scrollTop > 2) { pulling = false; resetScreen(); resetPullVisuals(); return; }
 
     var dy = e.touches[0].clientY - touchStartY;
     if (dy <= 0) return;
 
     currentDY = dy;
     var visual = resist(dy);
-    var progress = dy / PTR_THRESHOLD;
-
     setScreenY(visual);
-    updateRing(progress);
+    updatePullVisuals(dy);
 
-    // Vibração háptica ao cruzar o threshold (uma vez só)
-    if (dy >= PTR_THRESHOLD && dy - (e.touches[0].clientY - e.touches[0].clientY) < PTR_THRESHOLD) {
+    // Haptic ao cruzar o threshold (uma vez)
+    if (!hapticDone && dy >= PTR_THRESHOLD) {
       if (navigator.vibrate) navigator.vibrate(15);
+      hapticDone = true;
     }
   }
 
@@ -708,26 +735,22 @@ function rebuildTrailAnimated() {
     getEls();
 
     if (fired || currentDY < PTR_THRESHOLD) {
-      // Não chegou — snap de volta
-      resetScreen(true);
-      updateRing(0);
-      if (ring) ring.style.strokeDashoffset = '113';
+      resetScreen();
+      resetPullVisuals();
       currentDY = 0;
       return;
     }
 
     fired = true;
-
-    // Vibração no disparo
     if (navigator.vibrate) navigator.vibrate([30, 20, 60]);
 
-    // Trava na posição aberta (mostra indicador) com spring
-    screen.style.transition = 'transform 0.25s cubic-bezier(0.25, 1, 0.5, 1)';
-    screen.style.transform  = 'translateY(' + PTR_MAX + 'px)';
-    indicator.classList.add('ptr-firing');
-    if (ring) ring.style.strokeDashoffset = '';
+    // Trava aberto mostrando o indicador girando
+    screenEl.style.transition = 'transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)';
+    screenEl.style.transform  = 'translateY(' + PTR_MAX + 'px)';
+    indicatorEl.classList.add('ptr-firing');
+    if (ringCircle) ringCircle.style.strokeDashoffset = '';
+    if (labelEl) { labelEl.style.opacity = '1'; labelEl.style.transform = 'translateY(0)'; labelEl.textContent = 'Atualizando Drago…'; }
 
-    // Reinicializa
     setTimeout(function() {
       autoFreezePastDays();
       recomputeStats();
@@ -735,15 +758,15 @@ function rebuildTrailAnimated() {
       updateHomeCard();
       rebuildTrailAnimated();
 
-      // Fecha com spring
       setTimeout(function() {
-        indicator.classList.remove('ptr-firing');
-        resetScreen(true);
-        if (ring) ring.style.strokeDashoffset = '113';
-        currentDY = 0;
-        fired     = false;
+        indicatorEl.classList.remove('ptr-firing');
+        resetScreen();
+        resetPullVisuals();
+        currentDY  = 0;
+        fired      = false;
+        hapticDone = false;
         scrollToToday(true);
-      }, 600);
+      }, 550);
     }, 400);
   }
 
