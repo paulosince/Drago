@@ -605,6 +605,29 @@ function init() {
   }, 2200);
 }
 
+// ── REBUILD ANIMADO DA TRILHA ─────────────
+function rebuildTrailAnimated() {
+  var trail = document.getElementById('journey-trail');
+  if (!trail) return;
+
+  trail.style.transition = 'opacity 0.15s ease';
+  trail.style.opacity = '0';
+
+  setTimeout(function() {
+    buildJourneyTrail();
+    trail.style.opacity = '1';
+
+    var coins = trail.querySelectorAll('.trail-coin-wrap, .trail-coin-radar');
+    for (var i = 0; i < coins.length; i++) {
+      (function(el, idx) {
+        el.classList.remove('trail-coin-animate');
+        el.style.animationDelay = (idx * 30) + 'ms';
+        setTimeout(function() { el.classList.add('trail-coin-animate'); }, 10);
+      })(coins[i], i);
+    }
+  }, 150);
+}
+
 // ── PULL-TO-REFRESH ───────────────────────
 (function() {
   var PTR_THRESHOLD = 72; // px necessários para disparar
