@@ -630,89 +630,104 @@ function rebuildTrailAnimated() {
 
 // ── PULL-TO-REFRESH ───────────────────────
 (function() {
-  var PTR_THRESHOLD = 72; // px necessários para disparar
-  var touchStartY = 0;
-  var pulling = false;
-  var fired = false;
-  var indicator = null;
-  var ring = null;
+  var PTR_THRESHOLD = 72;
+  var PTR_MAX       = 90;  // máximo de deslocamento visual
+  var touchStartY   = 0;
+  var pulling       = false;
+  var fired         = false;
+  var currentDY     = 0;
 
-  function getIndicator() {
+  var screen    = null;
+  var indicator = null;
+  var ring      = null;
+
+  function getEls() {
+    if (!screen)    screen    = document.getElementById('screen-home');
     if (!indicator) indicator = document.getElementById('ptr-indicator');
-    return indicator;
+    if (!ring)      ring      = document.querySelector('.ptr-ring circle');
   }
-  function getRing() {
-    if (!ring) ring = document.querySelector('.ptr-ring circle');
-    return ring;
+
+  // Resistência logarítmica: muito sensível no início, desacelera depois
+  function resist(dy) {
+    return Math.min(PTR_MAX, dy * (PTR_MAX / (PTR_MAX + dy * 0.6)));
+  }
+
+  function setScreenY(y) {
+    getEls();
+    if (!screen) return;
+    screen.style.transition = 'none';
+    screen.style.transform  = y > 0 ? 'translateY(' + y + 'px)' : '';
+  }
+
+  function resetScreen(snap) {
+    getEls();
+    if (!screen) return;
+    screen.style.transition = snap ? 'transform 0.35s cubic-bezier(0.25, 1, 0.5, 1)' : 'none';
+    screen.style.transform  = '';
+  }
+
+  function updateRing(progress) {
+    if (ring) ring.style.strokeDashoffset = 113 - (113 * Math.min(progress, 1));
   }
 
   function onTouchStart(e) {
-    var screen = document.getElementById('screen-home');
+    getEls();
     if (!screen || !screen.classList.contains('active')) return;
-    if (screen.scrollTop > 0) return; // só dispara quando já está no topo
+    if (screen.scrollTop > 2) return;
     touchStartY = e.touches[0].clientY;
-    pulling = true;
-    fired = false;
+    pulling     = true;
+    fired       = false;
+    currentDY   = 0;
   }
 
   function onTouchMove(e) {
-    if (!pulling) return;
-    var screen = document.getElementById('screen-home');
+    if (!pulling || fired) return;
+    getEls();
     if (!screen || !screen.classList.contains('active')) return;
-    if (screen.scrollTop > 0) { pulling = false; return; }
+    if (screen.scrollTop > 2) { pulling = false; resetScreen(false); return; }
 
     var dy = e.touches[0].clientY - touchStartY;
-    if (dy <= 0) { pulling = false; return; }
+    if (dy <= 0) return;
 
-    // Resistência: dy desacelera conforme puxa mais
-    var progress = Math.min(dy / PTR_THRESHOLD, 1);
-    var ind = getIndicator();
-    var rc = getRing();
+    currentDY = dy;
+    var visual = resist(dy);
+    var progress = dy / PTR_THRESHOLD;
 
-    ind.classList.add('ptr-visible');
-    ind.classList.remove('ptr-firing');
+    setScreenY(visual);
+    updateRing(progress);
 
-    // Atualiza o arco do ring proporcionalmente ao progresso
-    if (rc) {
-      var dashoffset = 113 - (113 * progress);
-      rc.style.strokeDashoffset = dashoffset;
+    // Vibração háptica ao cruzar o threshold (uma vez só)
+    if (dy >= PTR_THRESHOLD && dy - (e.touches[0].clientY - e.touches[0].clientY) < PTR_THRESHOLD) {
+      if (navigator.vibrate) navigator.vibrate(15);
     }
-
-    if (dy > 8) e.preventDefault(); // evita bounce nativo do iOS
   }
 
   function onTouchEnd() {
-    if (!pulling || fired) return;
+    if (!pulling) return;
     pulling = false;
+    getEls();
 
-    var ind = getIndicator();
-    var rc = getRing();
-    var screen = document.getElementById('screen-home');
-    if (!screen || !screen.classList.contains('active')) return;
-
-    // Verifica se passou do threshold
-    var dy = 0;
-    // Usamos a classe ptr-visible como proxy — se estiver visível, analisa progresso
-    if (!ind.classList.contains('ptr-visible')) return;
-
-    // Checa se o ring estava completo (progress == 1)
-    if (rc && parseFloat(rc.style.strokeDashoffset) > 8) {
-      // Não chegou ao threshold — cancela
-      ind.classList.remove('ptr-visible');
-      if (rc) rc.style.strokeDashoffset = '113';
+    if (fired || currentDY < PTR_THRESHOLD) {
+      // Não chegou — snap de volta
+      resetScreen(true);
+      updateRing(0);
+      if (ring) ring.style.strokeDashoffset = '113';
+      currentDY = 0;
       return;
     }
 
     fired = true;
 
-    // Vibração: curta no trigger
+    // Vibração no disparo
     if (navigator.vibrate) navigator.vibrate([30, 20, 60]);
 
-    // Entra no estado "firing"
-    ind.classList.add('ptr-firing');
-    if (rc) rc.style.strokeDashoffset = '';
+    // Trava na posição aberta (mostra indicador) com spring
+    screen.style.transition = 'transform 0.25s cubic-bezier(0.25, 1, 0.5, 1)';
+    screen.style.transform  = 'translateY(' + PTR_MAX + 'px)';
+    indicator.classList.add('ptr-firing');
+    if (ring) ring.style.strokeDashoffset = '';
 
-    // Reinicializa o app após pequeno delay (deixa animação rodar)
+    // Reinicializa
     setTimeout(function() {
       autoFreezePastDays();
       recomputeStats();
@@ -720,18 +735,20 @@ function rebuildTrailAnimated() {
       updateHomeCard();
       rebuildTrailAnimated();
 
-      // Remove o indicador com fade
+      // Fecha com spring
       setTimeout(function() {
-        ind.classList.remove('ptr-visible', 'ptr-firing');
-        if (rc) rc.style.strokeDashoffset = '113';
-        fired = false;
+        indicator.classList.remove('ptr-firing');
+        resetScreen(true);
+        if (ring) ring.style.strokeDashoffset = '113';
+        currentDY = 0;
+        fired     = false;
         scrollToToday(true);
       }, 600);
     }, 400);
   }
 
   document.addEventListener('touchstart', onTouchStart, { passive: true });
-  document.addEventListener('touchmove',  onTouchMove,  { passive: false });
+  document.addEventListener('touchmove',  onTouchMove,  { passive: true });
   document.addEventListener('touchend',   onTouchEnd,   { passive: true });
 })();
 

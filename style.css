@@ -161,31 +161,25 @@ html, body {
 }
 
 /* ── PULL-TO-REFRESH ── */
+
+/* Indicador fixo, atrás da screen — aparece quando a screen desce */
 .ptr-indicator {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 80px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  overflow: hidden;
-  height: 0;
-  opacity: 0;
-  transition: height 0.2s ease, opacity 0.2s ease;
+  justify-content: center;
+  gap: 6px;
   pointer-events: none;
-}
-.ptr-indicator.ptr-visible {
-  height: 80px;
-  opacity: 1;
-}
-.ptr-indicator.ptr-firing {
-  height: 80px;
-  opacity: 1;
+  z-index: 0; /* atrás da .screen que tem z-index maior */
 }
 
 .ptr-spinner {
   position: relative;
   width: 44px;
   height: 44px;
-  margin-top: 8px;
 }
 
 .ptr-dragon-wrap {
@@ -200,6 +194,7 @@ html, body {
   width: 28px;
   height: 28px;
   object-fit: contain;
+  transition: transform 0.1s ease;
 }
 
 .ptr-ring {
@@ -217,7 +212,6 @@ html, body {
   stroke-linecap: round;
   stroke-dasharray: 113;
   stroke-dashoffset: 113;
-  transition: stroke-dashoffset 0.15s linear;
 }
 
 .ptr-indicator.ptr-firing .ptr-ring circle {
@@ -236,7 +230,7 @@ html, body {
 
 @keyframes ptrBounce {
   from { transform: scale(1) translateY(0); }
-  to   { transform: scale(1.15) translateY(-2px); }
+  to   { transform: scale(1.18) translateY(-3px); }
 }
 
 .ptr-label {
@@ -246,11 +240,18 @@ html, body {
   letter-spacing: 0.3px;
   opacity: 0;
   transform: translateY(4px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 .ptr-indicator.ptr-firing .ptr-label {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* A screen desliza para baixo durante o pull */
+#screen-home {
+  transition: transform 0.0s linear; /* controlado pelo JS durante gesto */
+  will-change: transform;
+  z-index: 1;
 }
 
 /* Trail coins fade-in ao rebuildar */
