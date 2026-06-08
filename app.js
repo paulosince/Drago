@@ -563,6 +563,7 @@ function showHome(animateScroll) {
   updateHomeCard();
   buildJourneyTrail();
   showScreen('screen-home');
+  startChromaKey();
   scrollToToday(animateScroll);
 }
 
@@ -777,44 +778,35 @@ function rebuildTrailAnimated() {
 })();
 
 // ── DRAGON VIDEO CHROMA KEY ───────────────
-(function() {
-  var video  = null;
-  var canvas = null;
-  var ctx    = null;
-  var raf    = null;
+var chromaKeyStarted = false;
+
+function startChromaKey() {
+  if (chromaKeyStarted) return;
+
+  var video  = document.getElementById('dragon-video');
+  var canvas = document.getElementById('dragon-canvas');
+  if (!video || !canvas) return;
+
+  chromaKeyStarted = true;
+
+  var ctx = canvas.getContext('2d', { willReadFrequently: true });
+  canvas.width  = 720;
+  canvas.height = 720;
 
   // Cor do fundo verde do vídeo: R=62 G=142 B=81
   var CK_R = 62, CK_G = 142, CK_B = 81;
-  var CK_THRESH = 80; // tolerância (distância euclidiana ao quadrado / 100)
-
-  function initChromaKey() {
-    video  = document.getElementById('dragon-video');
-    canvas = document.getElementById('dragon-canvas');
-    if (!video || !canvas) return;
-
-    ctx = canvas.getContext('2d', { willReadFrequently: true });
-
-    // Canvas interno em resolução nativa do vídeo
-    canvas.width  = 720;  // usamos altura como base quadrada (dragão está centrado)
-    canvas.height = 720;
-
-    video.addEventListener('play', function() {
-      if (raf) cancelAnimationFrame(raf);
-      drawFrame();
-    });
-
-    // iOS às vezes não dispara 'play' sem interação — força play
-    video.play().catch(function() {});
-  }
+  var CK_THRESH = 80;
 
   function drawFrame() {
-    if (video.paused || video.ended) return;
+    if (video.readyState < 2) {
+      requestAnimationFrame(drawFrame);
+      return;
+    }
 
-    // Recorta a região central do vídeo 1280×720 → 720×720
-    var srcX = (1280 - 720) / 2; // 280
-    ctx.drawImage(video, srcX, 0, 720, 720, 0, 0, 720, 720);
+    // Recorta região central 720×720 do vídeo 1280×720
+    var srcX = (video.videoWidth - video.videoHeight) / 2;
+    ctx.drawImage(video, srcX, 0, video.videoHeight, video.videoHeight, 0, 0, 720, 720);
 
-    // Chroma key: remove o verde pixel a pixel
     var imgData = ctx.getImageData(0, 0, 720, 720);
     var d = imgData.data;
 
@@ -824,26 +816,25 @@ function rebuildTrailAnimated() {
       var dist = (dr*dr + dg*dg + db*db) / 100;
 
       if (dist < CK_THRESH) {
-        // Dentro da cor de chroma: transparente
         d[i+3] = 0;
       } else if (dist < CK_THRESH * 2) {
-        // Zona de transição: semi-transparente
         d[i+3] = Math.round(((dist - CK_THRESH) / CK_THRESH) * 255);
       }
-      // Caso contrário: opaco (mantém d[i+3])
     }
 
     ctx.putImageData(imgData, 0, 0);
-    raf = requestAnimationFrame(drawFrame);
+    requestAnimationFrame(drawFrame);
   }
 
-  // Inicia após DOM pronto
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initChromaKey);
-  } else {
-    initChromaKey();
-  }
-})();
+  video.addEventListener('canplay', function() {
+    video.play().catch(function(){});
+  });
+
+  video.addEventListener('play', drawFrame);
+
+  // Força load — necessário quando o elemento estava oculto
+  video.load();
+}
 
 document.getElementById('modal-training').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
