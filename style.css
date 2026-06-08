@@ -160,6 +160,108 @@ html, body {
   animation: dragonFloat 3s ease-in-out infinite; z-index: 1;
 }
 
+/* ── PULL-TO-REFRESH ── */
+.ptr-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  height: 0;
+  opacity: 0;
+  transition: height 0.2s ease, opacity 0.2s ease;
+  pointer-events: none;
+}
+.ptr-indicator.ptr-visible {
+  height: 80px;
+  opacity: 1;
+}
+.ptr-indicator.ptr-firing {
+  height: 80px;
+  opacity: 1;
+}
+
+.ptr-spinner {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  margin-top: 8px;
+}
+
+.ptr-dragon-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ptr-dragon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.ptr-ring {
+  position: absolute;
+  inset: 0;
+  width: 44px;
+  height: 44px;
+  transform: rotate(-90deg);
+}
+
+.ptr-ring circle {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 113;
+  stroke-dashoffset: 113;
+  transition: stroke-dashoffset 0.15s linear;
+}
+
+.ptr-indicator.ptr-firing .ptr-ring circle {
+  stroke-dashoffset: 0;
+  animation: ptrSpin 0.7s linear infinite;
+}
+
+.ptr-indicator.ptr-firing .ptr-dragon {
+  animation: ptrBounce 0.5s ease infinite alternate;
+}
+
+@keyframes ptrSpin {
+  from { transform: rotate(-90deg); }
+  to   { transform: rotate(270deg); }
+}
+
+@keyframes ptrBounce {
+  from { transform: scale(1) translateY(0); }
+  to   { transform: scale(1.15) translateY(-2px); }
+}
+
+.ptr-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 0.3px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.ptr-indicator.ptr-firing .ptr-label {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Trail coins fade-in ao rebuildar */
+@keyframes coinFadeIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.92); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.trail-coin-animate {
+  animation: coinFadeIn 0.35s ease forwards;
+}
+
 /* ── TRAIL ── */
 .journey-trail {
   padding: 8px 0 32px;

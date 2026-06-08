@@ -605,6 +605,113 @@ function init() {
   }, 2200);
 }
 
+// ── PULL-TO-REFRESH ───────────────────────
+(function() {
+  var PTR_THRESHOLD = 72; // px necessários para disparar
+  var touchStartY = 0;
+  var pulling = false;
+  var fired = false;
+  var indicator = null;
+  var ring = null;
+
+  function getIndicator() {
+    if (!indicator) indicator = document.getElementById('ptr-indicator');
+    return indicator;
+  }
+  function getRing() {
+    if (!ring) ring = document.querySelector('.ptr-ring circle');
+    return ring;
+  }
+
+  function onTouchStart(e) {
+    var screen = document.getElementById('screen-home');
+    if (!screen || !screen.classList.contains('active')) return;
+    if (screen.scrollTop > 0) return; // só dispara quando já está no topo
+    touchStartY = e.touches[0].clientY;
+    pulling = true;
+    fired = false;
+  }
+
+  function onTouchMove(e) {
+    if (!pulling) return;
+    var screen = document.getElementById('screen-home');
+    if (!screen || !screen.classList.contains('active')) return;
+    if (screen.scrollTop > 0) { pulling = false; return; }
+
+    var dy = e.touches[0].clientY - touchStartY;
+    if (dy <= 0) { pulling = false; return; }
+
+    // Resistência: dy desacelera conforme puxa mais
+    var progress = Math.min(dy / PTR_THRESHOLD, 1);
+    var ind = getIndicator();
+    var rc = getRing();
+
+    ind.classList.add('ptr-visible');
+    ind.classList.remove('ptr-firing');
+
+    // Atualiza o arco do ring proporcionalmente ao progresso
+    if (rc) {
+      var dashoffset = 113 - (113 * progress);
+      rc.style.strokeDashoffset = dashoffset;
+    }
+
+    if (dy > 8) e.preventDefault(); // evita bounce nativo do iOS
+  }
+
+  function onTouchEnd() {
+    if (!pulling || fired) return;
+    pulling = false;
+
+    var ind = getIndicator();
+    var rc = getRing();
+    var screen = document.getElementById('screen-home');
+    if (!screen || !screen.classList.contains('active')) return;
+
+    // Verifica se passou do threshold
+    var dy = 0;
+    // Usamos a classe ptr-visible como proxy — se estiver visível, analisa progresso
+    if (!ind.classList.contains('ptr-visible')) return;
+
+    // Checa se o ring estava completo (progress == 1)
+    if (rc && parseFloat(rc.style.strokeDashoffset) > 8) {
+      // Não chegou ao threshold — cancela
+      ind.classList.remove('ptr-visible');
+      if (rc) rc.style.strokeDashoffset = '113';
+      return;
+    }
+
+    fired = true;
+
+    // Vibração: curta no trigger
+    if (navigator.vibrate) navigator.vibrate([30, 20, 60]);
+
+    // Entra no estado "firing"
+    ind.classList.add('ptr-firing');
+    if (rc) rc.style.strokeDashoffset = '';
+
+    // Reinicializa o app após pequeno delay (deixa animação rodar)
+    setTimeout(function() {
+      autoFreezePastDays();
+      recomputeStats();
+      saveState();
+      updateHomeCard();
+      rebuildTrailAnimated();
+
+      // Remove o indicador com fade
+      setTimeout(function() {
+        ind.classList.remove('ptr-visible', 'ptr-firing');
+        if (rc) rc.style.strokeDashoffset = '113';
+        fired = false;
+        scrollToToday(true);
+      }, 600);
+    }, 400);
+  }
+
+  document.addEventListener('touchstart', onTouchStart, { passive: true });
+  document.addEventListener('touchmove',  onTouchMove,  { passive: false });
+  document.addEventListener('touchend',   onTouchEnd,   { passive: true });
+})();
+
 document.getElementById('modal-training').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
