@@ -26,10 +26,11 @@ var MOOD_MESSAGES = {
   'Exausto': 'Drago está exausto. Ele precisa de você!'
 };
 
-var DRAGON_IMG  = 'dragon_transparent.png';
-var COIN_GOLD   = 'coin_gold.png';
-var COIN_SILVER = 'coin_silver.png';
-var COIN_FROZEN = 'coin_frozen.png';
+var DRAGON_IMG       = 'dragon_transparent.png';
+var COIN_GOLD        = 'coin_gold.png';
+var COIN_SILVER      = 'coin_silver.png';
+var COIN_FROZEN_GOLD = 'coin_frozen_gold.png';
+var COIN_FROZEN_SILVER = 'coin_frozen_silver.png';
 var BADGE_FIRE  = 'badge_fire.png';
 var BADGE_ICE   = 'badge_ice.png';
 var CASTLE_IMG  = 'castle.png';
@@ -178,10 +179,13 @@ function isDayFrozen(dayKey) {
 // ── AUTO-FREEZE ───────────────────────────
 function autoFreezePastDays() {
   var t = today();
+  var startDate = state.monthStart || t;
   var changed = false;
   var keys = Object.keys(state.days);
   for (var i = 0; i < keys.length; i++) {
     var key = keys[i];
+    // Ignora dias anteriores ao início da jornada
+    if (key < startDate) continue;
     if (key >= t) continue;
     var d = state.days[key];
     if (!d.frozen && !isDayComplete(key)) {
@@ -198,6 +202,7 @@ function recomputeStats() {
   var now = new Date();
   var mm = String(now.getMonth() + 1).padStart(2, '0');
   var thisMonth = now.getFullYear() + '-' + mm;
+  var startDate = state.monthStart || t;
 
   var streak = 0;
   var monthLiquid = 0;
@@ -207,6 +212,7 @@ function recomputeStats() {
   for (var i = 0; i < keys.length; i++) {
     var key = keys[i];
     if (key.indexOf(thisMonth) !== 0) continue;
+    if (key < startDate) continue;
     var d = state.days[key];
     if (d.frozen) monthFrozen++;
     else if (isDayComplete(key)) monthLiquid++;
@@ -245,26 +251,25 @@ function buildJourneyTrail() {
   var month = now.getMonth();
   var daysInMonth = new Date(year, month + 1, 0).getDate();
 
+  // Só renderiza a partir do dia em que o usuário configurou o app
+  var startDate = state.monthStart || t;
+
   var allDays = [];
   for (var d = 1; d <= daysInMonth; d++) {
     var dd = String(d).padStart(2, '0');
     var mm = String(month + 1).padStart(2, '0');
-    allDays.push(year + '-' + mm + '-' + dd);
+    var key = year + '-' + mm + '-' + dd;
+    if (key >= startDate) allDays.push(key);
   }
 
-  // S-curve positions: cada grupo de 6 forma uma curva
-  // left, center-left, center-right, right, center-right, center-left
   var positions = ['left', 'center', 'right', 'right', 'center', 'left'];
-
-  // Imagens temáticas aparecem a cada 5 dias, no lado OPOSTO ao brasão
   var imgIndex = 0;
-  var imgEvery = 5; // a cada 5 brasões
+  var imgEvery = 5;
 
   for (var i = 0; i < allDays.length; i++) {
     var pos = positions[i % 6];
     var isPast = allDays[i] <= t;
 
-    // A cada `imgEvery` dias, mostra imagem no lado oposto
     var showImg = (i > 0 && i % imgEvery === 0);
     var imgData = showImg ? TRAIL_IMAGES[imgIndex % TRAIL_IMAGES.length] : null;
     if (showImg) imgIndex++;
@@ -308,21 +313,27 @@ function buildTrailCoin(dayKey, todayKey, pos) {
   var wrap = document.createElement('div');
   wrap.className = 'trail-step trail-' + pos;
 
+  // Container do brasão (radar para hoje, normal para os demais)
+  var coinWrap;
   if (isToday) {
-    var tag = document.createElement('div');
-    tag.className = 'trail-today-tag';
-    tag.textContent = 'hoje';
-    wrap.appendChild(tag);
+    coinWrap = document.createElement('div');
+    coinWrap.className = 'trail-coin-radar';
+    // Três anéis de radar
+    for (var r = 0; r < 3; r++) {
+      var ring = document.createElement('div');
+      ring.className = 'radar-ring';
+      coinWrap.appendChild(ring);
+    }
+  } else {
+    coinWrap = document.createElement('div');
+    coinWrap.className = 'trail-coin-wrap';
   }
 
-  var coinWrap = document.createElement('div');
-  coinWrap.className = 'trail-coin-wrap' + (isToday ? ' trail-coin-today' : '');
-
   var coin = document.createElement('img');
-  coin.className = 'trail-coin';
+  coin.className = 'trail-coin' + (isToday ? ' trail-coin-today' : '');
 
   if (frozen) {
-    coin.src = COIN_FROZEN;
+    coin.src = weekend ? COIN_FROZEN_GOLD : COIN_FROZEN_SILVER;
   } else if (complete) {
     coin.src = weekend ? COIN_GOLD : COIN_SILVER;
   } else if (isToday) {
@@ -349,9 +360,13 @@ function buildTrailCoin(dayKey, todayKey, pos) {
   }
 
   var parts = dayKey.split('-');
+  var days = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+  var dateObj = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+  var dayName = days[dateObj.getDay()];
+
   var dateLabel = document.createElement('span');
-  dateLabel.className = 'trail-date';
-  dateLabel.textContent = parts[2] + '/' + parts[1];
+  dateLabel.className = 'trail-date' + (isToday ? ' trail-date-today' : '');
+  dateLabel.textContent = dayName + ' ' + parts[2] + '/' + parts[1];
 
   wrap.appendChild(coinWrap);
   wrap.appendChild(dateLabel);
@@ -462,8 +477,6 @@ function updateHomeCard() {
 
   document.getElementById('badge-streak').textContent  = '🔥 ' + state.streak + ' dias';
   document.getElementById('badge-freezes').textContent = '❄️ ' + state.monthFrozen + ' dias';
-
-  var mood = computeMood(today());
 }
 
 // ── SETUP ─────────────────────────────────
@@ -531,18 +544,44 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
 }
 
-function showHome() {
+function scrollToToday(animate) {
+  var todayCoins = document.querySelectorAll('.trail-coin-radar');
+  if (!todayCoins.length) return;
+  var coin = todayCoins[0];
+  var screen = document.getElementById('screen-home');
+  setTimeout(function() {
+    var coinTop = coin.getBoundingClientRect().top + screen.scrollTop;
+    var target = coinTop - (screen.clientHeight / 2) + 60;
+    screen.scrollTo({ top: Math.max(0, target), behavior: animate ? 'smooth' : 'auto' });
+  }, 80);
+}
+
+function showHome(animateScroll) {
   autoFreezePastDays();
   recomputeStats();
   saveState();
   updateHomeCard();
   buildJourneyTrail();
   showScreen('screen-home');
+  scrollToToday(animateScroll);
 }
 
 // ── INIT ──────────────────────────────────
 function init() {
   loadState();
+
+  // Limpa dias criados antes do início da jornada (dados corrompidos)
+  if (state.monthStart) {
+    var keys = Object.keys(state.days);
+    var cleaned = false;
+    for (var i = 0; i < keys.length; i++) {
+      if (keys[i] < state.monthStart) {
+        delete state.days[keys[i]];
+        cleaned = true;
+      }
+    }
+    if (cleaned) saveState();
+  }
 
   var t = today();
   if (!state.days[t]) {
@@ -562,10 +601,190 @@ function init() {
       renderSetupList();
       showScreen('screen-setup');
     } else {
-      showHome();
+      showHome(true);
     }
   }, 2200);
 }
+
+// ── REBUILD ANIMADO DA TRILHA ─────────────
+function rebuildTrailAnimated() {
+  var trail = document.getElementById('journey-trail');
+  if (!trail) return;
+
+  trail.style.transition = 'opacity 0.15s ease';
+  trail.style.opacity = '0';
+
+  setTimeout(function() {
+    buildJourneyTrail();
+    trail.style.opacity = '1';
+
+    var coins = trail.querySelectorAll('.trail-coin-wrap, .trail-coin-radar');
+    for (var i = 0; i < coins.length; i++) {
+      (function(el, idx) {
+        el.classList.remove('trail-coin-animate');
+        el.style.animationDelay = (idx * 30) + 'ms';
+        setTimeout(function() { el.classList.add('trail-coin-animate'); }, 10);
+      })(coins[i], i);
+    }
+  }, 150);
+}
+
+// ── PULL-TO-REFRESH ───────────────────────
+(function() {
+  var PTR_THRESHOLD = 72;
+  var PTR_MAX       = 90;
+  var touchStartY   = 0;
+  var pulling       = false;
+  var fired         = false;
+  var currentDY     = 0;
+  var hapticDone    = false;
+
+  var screenEl    = null;
+  var indicatorEl = null;
+  var ringCircle  = null;
+  var dragonEl    = null;
+  var labelEl     = null;
+
+  function getEls() {
+    if (!screenEl)    screenEl    = document.getElementById('screen-home');
+    if (!indicatorEl) indicatorEl = document.getElementById('ptr-indicator');
+    if (!ringCircle)  ringCircle  = document.querySelector('.ptr-ring circle');
+    if (!dragonEl)    dragonEl    = document.querySelector('.ptr-dragon');
+    if (!labelEl)     labelEl     = document.querySelector('.ptr-label');
+  }
+
+  function resist(dy) {
+    return Math.min(PTR_MAX, dy * (PTR_MAX / (PTR_MAX + dy * 0.6)));
+  }
+
+  function setScreenY(y) {
+    screenEl.style.transition = 'none';
+    screenEl.style.transform  = y > 0 ? 'translateY(' + y + 'px)' : '';
+  }
+
+  function resetScreen() {
+    screenEl.style.transition = 'transform 0.38s cubic-bezier(0.25, 1, 0.5, 1)';
+    screenEl.style.transform  = '';
+  }
+
+  // Atualiza visuais durante o pull: arco + aparecimento do dragão
+  function updatePullVisuals(dy) {
+    var progress = Math.min(dy / PTR_THRESHOLD, 1);
+
+    // Arco SVG: constrói proporcionalmente
+    if (ringCircle) {
+      ringCircle.style.strokeDashoffset = 113 - (113 * progress);
+    }
+
+    // Dragão: aparece e cresce conforme puxa
+    if (dragonEl) {
+      var scale   = 0.4 + (progress * 0.6);   // 0.4 → 1.0
+      var opacity = 0.2 + (progress * 0.8);    // 0.2 → 1.0
+      dragonEl.style.transform = 'scale(' + scale + ')';
+      dragonEl.style.opacity   = opacity;
+    }
+
+    // Label aparece quando passa de 80% do threshold
+    if (labelEl) {
+      labelEl.style.opacity   = progress > 0.8 ? ((progress - 0.8) / 0.2) : 0;
+      labelEl.style.transform = progress > 0.8 ? 'translateY(0)' : 'translateY(4px)';
+      labelEl.textContent     = progress >= 1 ? 'Solte para atualizar!' : 'Atualizando Drago…';
+    }
+  }
+
+  function resetPullVisuals() {
+    if (ringCircle) ringCircle.style.strokeDashoffset = '113';
+    if (dragonEl)   { dragonEl.style.transform = ''; dragonEl.style.opacity = ''; }
+    if (labelEl)    { labelEl.style.opacity = '0'; labelEl.style.transform = 'translateY(4px)'; }
+  }
+
+  function onTouchStart(e) {
+    getEls();
+    if (!screenEl || !screenEl.classList.contains('active')) return;
+    if (screenEl.scrollTop > 2) return;
+    touchStartY = e.touches[0].clientY;
+    pulling     = true;
+    fired       = false;
+    currentDY   = 0;
+    hapticDone  = false;
+  }
+
+  function onTouchMove(e) {
+    if (!pulling || fired) return;
+    getEls();
+    if (!screenEl || !screenEl.classList.contains('active')) return;
+    if (screenEl.scrollTop > 2) { pulling = false; resetScreen(); resetPullVisuals(); return; }
+
+    var dy = e.touches[0].clientY - touchStartY;
+    if (dy <= 0) return;
+
+    currentDY = dy;
+    var visual = resist(dy);
+    setScreenY(visual);
+    updatePullVisuals(dy);
+
+    // Haptic ao cruzar o threshold (uma vez)
+    if (!hapticDone && dy >= PTR_THRESHOLD) {
+      if (navigator.vibrate) navigator.vibrate(15);
+      hapticDone = true;
+    }
+  }
+
+  function onTouchEnd() {
+    if (!pulling) return;
+    pulling = false;
+    getEls();
+
+    if (fired || currentDY < PTR_THRESHOLD) {
+      resetScreen();
+      resetPullVisuals();
+      currentDY = 0;
+      return;
+    }
+
+    fired = true;
+    if (navigator.vibrate) navigator.vibrate([30, 20, 60]);
+
+    // Trava aberto mostrando o indicador girando
+    screenEl.style.transition = 'transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)';
+    screenEl.style.transform  = 'translateY(' + PTR_MAX + 'px)';
+    indicatorEl.classList.add('ptr-firing');
+    if (ringCircle) ringCircle.style.strokeDashoffset = '';
+    if (labelEl) { labelEl.style.opacity = '1'; labelEl.style.transform = 'translateY(0)'; labelEl.textContent = 'Atualizando Drago…'; }
+
+    setTimeout(function() {
+      autoFreezePastDays();
+      recomputeStats();
+      saveState();
+      updateHomeCard();
+      rebuildTrailAnimated();
+
+      setTimeout(function() {
+        indicatorEl.classList.remove('ptr-firing');
+        resetScreen();
+        resetPullVisuals();
+        currentDY  = 0;
+        fired      = false;
+        hapticDone = false;
+        scrollToToday(true);
+      }, 550);
+    }, 400);
+  }
+
+  document.addEventListener('touchstart', onTouchStart, { passive: true });
+  document.addEventListener('touchmove',  onTouchMove,  { passive: true });
+  document.addEventListener('touchend',   onTouchEnd,   { passive: true });
+})();
+
+// ── DRAGON GIF — para no último frame ────
+(function() {
+  var GIF_DURATION = 120 * 83; // 120 frames × 83ms = 9960ms
+  var el = document.getElementById('dragon-gif');
+  if (!el) return;
+  setTimeout(function() {
+    el.src = 'drago_filhote_still.png';
+  }, GIF_DURATION);
+})();
 
 document.getElementById('modal-training').addEventListener('click', function(e) {
   if (e.target === this) closeModal();

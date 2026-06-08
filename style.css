@@ -124,7 +124,6 @@ html, body {
   padding: 20px;
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
   min-height: 160px;
   box-shadow: var(--shadow);
   position: relative;
@@ -155,29 +154,141 @@ html, body {
   font-size: 13px; font-weight: 700; color: white;
   background: rgba(255,255,255,0.2); border-radius: 99px; padding: 4px 10px;
 }
-.card-dragon {
+.card-dragon-wrap {
   position: absolute;
-  right: 0; bottom: 0;
-  width: 140px; height: 140px;
-  object-fit: contain;
-  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.15));
-  animation: dragonFloat 3s ease-in-out infinite;
+  right: 0;
+  top: 0;
+  bottom: 0;
   z-index: -1;
+  display: flex;
+  align-items: center;
+}
+
+.card-dragon-gif {
+  height: 100%;
+  width: auto;
+}
+/* ── PULL-TO-REFRESH ── */
+
+.ptr-indicator {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ptr-spinner {
+  position: relative;
+  width: 44px;
+  height: 44px;
+}
+
+.ptr-dragon-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ptr-dragon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+/* O SVG inteiro gira — evita bug de transform-origin em circle no Safari */
+.ptr-ring {
+  position: absolute;
+  inset: 0;
+  width: 44px;
+  height: 44px;
+  display: block;
+  transform: rotate(-90deg);
+  transform-origin: 22px 22px;
+}
+
+.ptr-ring circle {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 113;
+  stroke-dashoffset: 113; /* controlado pelo JS durante pull */
+}
+
+/* Quando disparado: gira o SVG inteiro em torno do próprio centro */
+.ptr-indicator.ptr-firing .ptr-ring {
+  animation: ptrSpin 0.75s linear infinite;
+  transform-origin: 22px 22px;
+}
+
+.ptr-indicator.ptr-firing .ptr-ring circle {
+  stroke-dashoffset: 0;
+}
+
+.ptr-indicator.ptr-firing .ptr-dragon {
+  animation: ptrBounce 0.5s ease infinite alternate;
+}
+
+@keyframes ptrSpin {
+  from { transform: rotate(-90deg); }
+  to   { transform: rotate(270deg); }
+}
+
+@keyframes ptrBounce {
+  from { transform: scale(1) translateY(0); }
+  to   { transform: scale(1.18) translateY(-3px); }
+}
+
+.ptr-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 0.3px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.ptr-indicator.ptr-firing .ptr-label {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* A screen desliza durante o pull */
+#screen-home {
+  will-change: transform;
+  z-index: 1;
+}
+
+/* Trail coins fade-in ao rebuildar */
+@keyframes coinFadeIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.92); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.trail-coin-animate {
+  animation: coinFadeIn 0.35s ease forwards;
 }
 
 /* ── TRAIL ── */
 .journey-trail {
-  padding: 16px 0 32px;
+  padding: 8px 0 32px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0;
 }
 
 /* Cada linha da trilha: brasão + imagem lateral */
 .trail-row {
   position: relative;
   width: 100%;
-  min-height: 120px;
+  min-height: 88px;
   display: flex;
   align-items: center;
 }
@@ -193,8 +304,8 @@ html, body {
 .trail-scenic-right { right: 16px; }
 
 .trail-scenic-img {
-  width: 80px;
-  height: 80px;
+  width: 72px;
+  height: 72px;
   object-fit: contain;
 }
 .trail-image-future { filter: grayscale(100%) opacity(0.35); }
@@ -203,7 +314,7 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   width: 100%;
   padding: 4px 0;
 }
@@ -211,11 +322,48 @@ html, body {
 .trail-center { align-items: center; }
 .trail-right { padding-right: 24px; align-items: flex-end; }
 
-.trail-today-tag {
-  background: #ff6b35; color: white;
-  font-size: 11px; font-weight: 800;
-  border-radius: 99px; padding: 3px 10px;
-  text-transform: uppercase; margin-bottom: 2px;
+/* Data sempre centralizada em relação ao brasão */
+.trail-date {
+  width: 104px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: transparent;
+  background: linear-gradient(120deg, #aab8aa 0%, #7a9080 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.trail-date-today {
+  background: linear-gradient(120deg, #3dba78 0%, #2e9e63 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 900;
+}
+.trail-coin-radar {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.trail-coin-radar:active { transform: scale(0.9); }
+
+.radar-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2.5px solid rgba(61, 186, 120, 0.6);
+  animation: radarPulse 2.4s ease-out infinite;
+}
+.radar-ring:nth-child(2) { animation-delay: 0.8s; }
+.radar-ring:nth-child(3) { animation-delay: 1.6s; }
+
+@keyframes radarPulse {
+  0%   { transform: scale(1);    opacity: 0.7; }
+  100% { transform: scale(1.7);  opacity: 0; }
 }
 
 .trail-coin-wrap {
@@ -231,6 +379,8 @@ html, body {
 }
 
 .trail-coin {
+  position: relative;
+  z-index: 1;
   width: 104px; height: 104px;
   border-radius: 50%; object-fit: cover;
 }
@@ -242,11 +392,9 @@ html, body {
   border-radius: 50%; object-fit: cover;
   border: 2px solid white;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  z-index: 2;
 }
 
-.trail-date {
-  font-size: 11px; color: var(--text-soft); font-weight: 600;
-}
 
 
 
