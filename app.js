@@ -26,10 +26,11 @@ var MOOD_MESSAGES = {
   'Exausto': 'Drago está exausto. Ele precisa de você!'
 };
 
-var DRAGON_IMG  = 'dragon_transparent.png';
-var COIN_GOLD   = 'coin_gold.png';
-var COIN_SILVER = 'coin_silver.png';
-var COIN_FROZEN = 'coin_frozen.png';
+var DRAGON_IMG       = 'dragon_transparent.png';
+var COIN_GOLD        = 'coin_gold.png';
+var COIN_SILVER      = 'coin_silver.png';
+var COIN_FROZEN_GOLD = 'coin_frozen_gold.png';
+var COIN_FROZEN_SILVER = 'coin_frozen_silver.png';
 var BADGE_FIRE  = 'badge_fire.png';
 var BADGE_ICE   = 'badge_ice.png';
 var CASTLE_IMG  = 'castle.png';
@@ -332,7 +333,7 @@ function buildTrailCoin(dayKey, todayKey, pos) {
   coin.className = 'trail-coin' + (isToday ? ' trail-coin-today' : '');
 
   if (frozen) {
-    coin.src = COIN_FROZEN;
+    coin.src = weekend ? COIN_FROZEN_GOLD : COIN_FROZEN_SILVER;
   } else if (complete) {
     coin.src = weekend ? COIN_GOLD : COIN_SILVER;
   } else if (isToday) {
