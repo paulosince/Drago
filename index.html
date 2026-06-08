@@ -68,9 +68,12 @@
         </div>
       </div>
       <div class="card-dragon-wrap">
-        <video class="card-dragon-video" autoplay loop muted playsinline>
+        <!-- Vídeo oculto — fonte para o canvas -->
+        <video id="dragon-video" autoplay loop muted playsinline crossorigin="anonymous" style="display:none">
           <source src="drago_filhote.mp4" type="video/mp4" />
         </video>
+        <!-- Canvas renderiza o dragão sem o fundo verde -->
+        <canvas id="dragon-canvas" class="card-dragon-canvas"></canvas>
       </div>
     </div>
     </div>

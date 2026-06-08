@@ -156,29 +156,20 @@ html, body {
 }
 .card-dragon-wrap {
   position: relative;
-  width: 130px;
-  height: 130px;
+  width: 140px;
+  height: 140px;
   flex-shrink: 0;
   z-index: 1;
-  border-radius: 50%;
-  overflow: hidden;
-  /* Máscara radial: centro opaco, bordas transparentes → dissolve no verde do card */
-  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 55% 50%,
-    black 40%, transparent 80%);
-  mask-image: radial-gradient(ellipse 80% 80% at 55% 50%,
-    black 40%, transparent 80%);
 }
 
-.card-dragon-video {
-  position: absolute;
-  /* O vídeo é 1280×720 (landscape); centraliza e cobre o wrapper */
-  top: 50%;
-  left: 50%;
-  /* Escala para cobrir 130px de altura, mantendo proporção */
-  height: 200%;
-  width: auto;
-  transform: translate(-50%, -50%);
-  object-fit: cover;
+.card-dragon-canvas {
+  width: 140px;
+  height: 140px;
+  /* Máscara radial dissolve as bordas no verde do card */
+  -webkit-mask-image: radial-gradient(ellipse 88% 88% at 52% 52%,
+    black 45%, rgba(0,0,0,0.5) 62%, transparent 78%);
+  mask-image: radial-gradient(ellipse 88% 88% at 52% 52%,
+    black 45%, rgba(0,0,0,0.5) 62%, transparent 78%);
 }
 
 /* ── PULL-TO-REFRESH ── */
