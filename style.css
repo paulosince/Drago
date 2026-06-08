@@ -192,10 +192,6 @@ html, body {
 .trail-scenic-left  { left: 16px; }
 .trail-scenic-right { right: 16px; }
 
-.trail-scenic-img {
-  width: 80px;
-  height: 80px;
-  object-fit: contain;
 }
 .trail-image-future { filter: grayscale(100%) opacity(0.35); }
 
@@ -388,4 +384,89 @@ html, body {
 @keyframes dragonFloat {
   0%, 100% { transform: translateY(0); }
   50%       { transform: translateY(-8px); }
+}
+
+/* ── JOURNEY START SCREEN ── */
+.screen-journey-start {
+  background: linear-gradient(160deg, #3dba78 0%, #1a7a4a 100%);
+  align-items: center;
+  justify-content: center;
+}
+.journey-start-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 32px;
+  text-align: center;
+}
+.journey-start-dragon {
+  width: 180px; height: 180px;
+  object-fit: contain;
+  filter: drop-shadow(0 16px 40px rgba(0,0,0,0.25));
+  animation: dragonFloat 3s ease-in-out infinite;
+}
+.journey-start-title {
+  font-size: 30px; font-weight: 900; color: white;
+  letter-spacing: -0.5px; line-height: 1.15;
+}
+.journey-start-sub {
+  font-size: 17px; color: rgba(255,255,255,0.85);
+  font-weight: 600; line-height: 1.5;
+}
+.btn-journey-start {
+  margin-top: 16px;
+  background: white; color: var(--green-dark);
+  border: none; border-radius: 20px;
+  padding: 18px 48px;
+  font-size: 18px; font-weight: 900;
+  cursor: pointer; font-family: 'Nunito', sans-serif;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  transition: transform 0.15s, box-shadow 0.15s;
+  letter-spacing: -0.3px;
+}
+.btn-journey-start:active {
+  transform: scale(0.96);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* ── CHECK ANIMATION ── */
+@keyframes checkPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.06); }
+  70%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+.check-pop {
+  animation: checkPop 0.35s ease forwards;
+}
+
+/* ── COMPLETE TOAST ── */
+.complete-toast {
+  position: fixed;
+  bottom: 32px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: linear-gradient(135deg, #3dba78, #2e9e63);
+  color: white;
+  font-size: 15px; font-weight: 800;
+  padding: 14px 24px;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(61,186,120,0.4);
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 200;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.complete-toast.toast-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+
+/* ── SCENIC IMAGES — triplicado ── */
+.trail-scenic-img {
+  width: 240px;
+  height: 240px;
+  object-fit: contain;
 }
