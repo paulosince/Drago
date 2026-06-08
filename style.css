@@ -124,7 +124,6 @@ html, body {
   padding: 20px;
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
   min-height: 160px;
   box-shadow: var(--shadow);
   position: relative;
@@ -155,19 +154,26 @@ html, body {
   background: rgba(255,255,255,0.2); border-radius: 99px; padding: 4px 10px;
 }
 .card-dragon-wrap {
-  position: relative;
-  width: 140px;
-  height: 140px;
-  flex-shrink: 0;
-  z-index: 1;
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 180px;
+  overflow: hidden;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  z-index: 0;
 }
 
 .card-dragon-gif {
-  width: 140px;
-  height: 140px;
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  height: calc(100% + 24px);
+  width: auto;
   object-fit: contain;
+  object-position: bottom right;
+  /* Dissolve a borda esquerda no degradê do card */
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 35%);
+  mask-image: linear-gradient(to right, transparent 0%, black 35%);
 }
-
 /* ── PULL-TO-REFRESH ── */
 
 .ptr-indicator {
